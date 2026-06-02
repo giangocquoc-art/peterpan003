@@ -1,0 +1,6 @@
+{
+  "name": "Velorah",
+  "description": "A cinematic single-page hero section with a fullscreen background video.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
