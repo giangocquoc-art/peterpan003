@@ -18,6 +18,10 @@ import {
   Check,
   Zap,
   Globe,
+  Headphones,
+  Route,
+  Target,
+  Mail,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -335,7 +339,7 @@ function FeaturedTools() {
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
         <ToolCard
           title="P-English"
-          description="Học tiếng Anh với flashcards, shadowing, lộ trình nền tảng và luyện tập tương tác."
+          description="Học tiếng Anh qua flashcards, shadowing, lộ trình cá nhân hóa — miễn phí, không cần đăng ký."
           url="https://penglish.vercel.app"
           icon={BookOpen}
         />
@@ -375,7 +379,7 @@ function FeatureCategory({
 }: {
   icon: React.ElementType
   title: string
-  color: 'violet' | 'sky' | 'emerald'
+  color: 'violet' | 'sky' | 'emerald' | 'amber' | 'rose'
   items: string[]
 }) {
   const colorMap = {
@@ -393,6 +397,16 @@ function FeatureCategory({
       bg: 'bg-emerald-500/10',
       icon: 'text-emerald-400',
       check: 'text-emerald-400/60',
+    },
+    amber: {
+      bg: 'bg-amber-500/10',
+      icon: 'text-amber-400',
+      check: 'text-amber-400/60',
+    },
+    rose: {
+      bg: 'bg-rose-500/10',
+      icon: 'text-rose-400',
+      check: 'text-rose-400/60',
     },
   }
   const c = colorMap[color]
@@ -429,9 +443,10 @@ function ProductHighlights() {
         className="mb-32 flex flex-col items-center gap-16 lg:flex-row"
         id="p-english"
       >
-        <div className="flex-1 space-y-6">
-          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
-            Sản phẩm nổi bật
+        <div className="flex-1 space-y-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
+            <BookOpen className="h-3.5 w-3.5" />
+            English Learning
           </div>
           <h2
             className="text-5xl tracking-tight sm:text-6xl"
@@ -440,11 +455,45 @@ function ProductHighlights() {
             P-English
           </h2>
           <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Học tiếng Anh thông minh với flashcards, shadowing, lộ trình nền
-            tảng và luyện tập tương tác. Được thiết kế cho người Việt học tiếng
-            Anh hiệu quả hơn.
+            Học tiếng Anh miễn phí — thiết kế riêng cho người Việt.
+            Không cần đăng ký, không phí ẩn.
           </p>
-          <div className="pt-4">
+
+          {/* Feature Categories */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <FeatureCategory
+              icon={BookOpen}
+              title="Từ vựng"
+              color="violet"
+              items={['Flashcard thông minh', 'Lặp lại ngắt quãng (SRS)', 'Học qua ngữ cảnh']}
+            />
+            <FeatureCategory
+              icon={Headphones}
+              title="Luyện nghe & nói"
+              color="sky"
+              items={['Shadowing luyện phát âm', 'Nghe chép chính tả', 'Ghi âm & so sánh']}
+            />
+            <FeatureCategory
+              icon={Route}
+              title="Lộ trình"
+              color="amber"
+              items={['Cá nhân hóa theo trình độ', 'Theo dõi tiến độ', 'Mục tiêu hàng ngày']}
+            />
+          </div>
+
+          {/* Quick info pills */}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
+              <Zap className="h-3 w-3 text-amber-400/60" />
+              Miễn phí hoàn toàn
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
+              <Target className="h-3 w-3 text-rose-400/60" />
+              Dành cho người Việt
+            </div>
+          </div>
+
+          <div className="pt-2">
             <a
               href="https://penglish.vercel.app"
               target="_blank"
@@ -635,17 +684,13 @@ function Footer() {
           </a>
 
           <a
-            href="https://zalo.me/g/vbycrx997"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:giangocquoc@gmail.com?subject=G%C3%B3p%20%C3%BD%20c%C3%B4ng%20c%E1%BB%A5%20m%E1%BB%9Bi%20%E2%80%94%20P-ShareHub"
             className="liquid-glass flex flex-col rounded-2xl p-8 transition-transform hover:scale-[1.02]"
           >
-            <div className="mb-6 flex h-8 w-8 items-center justify-center rounded-full border border-white/30 text-xl pb-1">
-              +
-            </div>
+            <Mail className="mb-6 h-8 w-8 text-white/80" />
             <h3 className="mb-2 text-xl">Góp ý công cụ mới</h3>
             <p className="text-sm text-muted-foreground">
-              Đề xuất công cụ bạn cần
+              Gửi email đề xuất công cụ bạn cần
             </p>
           </a>
         </div>
@@ -768,8 +813,8 @@ export default function Home() {
           </button>
         </nav>
 
-        {/* Hero Section */}
-        <main className="flex min-h-[80vh] flex-col items-center justify-center px-6 pt-32 pb-40 text-center md:py-[120px]">
+        {/* Hero Section - First thing users see */}
+        <main className="flex min-h-[calc(100vh-100px)] flex-col items-center justify-center px-6 pb-20 pt-16 text-center">
           <h1
             className="animate-fade-rise max-w-7xl text-5xl font-normal leading-[0.95] tracking-[-2.46px] sm:text-7xl md:text-8xl"
             style={{ fontFamily: 'var(--font-display)' }}
