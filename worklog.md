@@ -20,3 +20,37 @@ Stage Summary:
 - "P-English?" button scrolls smoothly to the P-English product section
 - All CSS animations (fade-rise, star-drift) working correctly
 - No dev server errors
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Multiple UI improvements - text change, progress bars, screenshots, font, scroll, premium galaxy UI
+
+Work Log:
+- Changed About section heading from "Công cụ hữu ích không nên luôn bị khoá sau phí." to "Tôi nghèo, bạn cũng thế."
+- Added development progress bars: P-API (70% - "Đang phát triển"), Vocodo (30% - "Giai đoạn ý tưởng") with amber gradient progress indicators
+- P-English and P-DF remain without progress bars (they are live products)
+- Visited penglish.vercel.app with agent-browser, took full screenshot, saved to /public/penglish-preview.png
+- P-DF site (sejda.com) blocked by Cloudflare, created premium mock PDF editor UI instead
+- Replaced P-English placeholder with real screenshot, P-DF with realistic mock UI
+- Changed font from Inter to Be Vietnam Pro (specifically designed for Vietnamese, with vietnamese subset in next/font/google)
+- Made "Tìm hiểu thêm về P-Share" button scroll to "Kết nối với chúng tôi" section
+- Replaced CSS starfield with Canvas-based Galaxy background featuring:
+  - Twinkling stars with glow effects for larger stars
+  - Drifting nebulae (purple/blue/pink gradients)
+  - Shooting stars with gradient trails
+  - Smooth drift animation
+- Enhanced liquid-glass with stronger blur (12px), saturation, and deeper shadows
+- Added liquid-glass-nav for sticky frosted-glass navigation
+- Added galaxy-card class with violet glow and hover lift effect
+- Enhanced profile photo glow with violet/blue gradient layers
+- Added purple selection color
+- Verified all interactions with Agent Browser + VLM
+
+Stage Summary:
+- All 6 tasks completed and browser-verified
+- Premium galaxy canvas background with shooting stars, nebulae, twinkling
+- Be Vietnam Pro font for crisp Vietnamese rendering
+- P-English product card now shows real screenshot
+- P-API 70% and Vocodo 30% progress bars with amber gradient
+- Both scroll buttons working (P-English? → P-English section, Tìm hiểu thêm → Contact section)

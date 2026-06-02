@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Instrument_Serif, Inter } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif, Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -20,10 +20,10 @@ const instrumentSerif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+const beVietnamPro = Be_Vietnam_Pro({
+  variable: "--font-be-vietnam-pro",
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -58,7 +58,7 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${inter.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} ${beVietnamPro.variable} antialiased bg-background text-foreground`}
       >
         {children}
         <Toaster />

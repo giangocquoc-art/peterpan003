@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowRight,
   BookOpen,
@@ -10,38 +10,260 @@ import {
   MessagesSquare,
   Facebook,
   ExternalLink,
+  Hammer,
+  Sparkles,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Progress } from '@/components/ui/progress'
 
-/* ─── Starfield (CSS-only) ─── */
-function Starfield() {
+/* ─── Canvas Galaxy Background ─── */
+function GalaxyBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animationId: number
+    let width = 0
+    let height = 0
+
+    interface Star {
+      x: number
+      y: number
+      size: number
+      speed: number
+      opacity: number
+      twinkleSpeed: number
+      twinklePhase: number
+    }
+
+    interface ShootingStar {
+      x: number
+      y: number
+      len: number
+      speed: number
+      opacity: number
+      angle: number
+      life: number
+      maxLife: number
+    }
+
+    interface Nebula {
+      x: number
+      y: number
+      radius: number
+      color: string
+      opacity: number
+      drift: number
+      phase: number
+    }
+
+    let stars: Star[] = []
+    let shootingStars: ShootingStar[] = []
+    let nebulae: Nebula[] = []
+
+    function resize() {
+      if (!canvas) return
+      width = canvas.width = window.innerWidth
+      height = canvas.height = window.innerHeight
+      initStars()
+      initNebulae()
+    }
+
+    function initStars() {
+      const count = Math.floor((width * height) / 2500)
+      stars = Array.from({ length: count }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        size: Math.random() * 2 + 0.3,
+        speed: Math.random() * 0.15 + 0.02,
+        opacity: Math.random() * 0.8 + 0.2,
+        twinkleSpeed: Math.random() * 0.02 + 0.005,
+        twinklePhase: Math.random() * Math.PI * 2,
+      }))
+    }
+
+    function initNebulae() {
+      nebulae = [
+        {
+          x: width * 0.2,
+          y: height * 0.3,
+          radius: 300,
+          color: 'rgba(100, 50, 180, 0.015)',
+          opacity: 1,
+          drift: 0.0003,
+          phase: 0,
+        },
+        {
+          x: width * 0.7,
+          y: height * 0.6,
+          radius: 250,
+          color: 'rgba(30, 80, 160, 0.012)',
+          opacity: 1,
+          drift: 0.0002,
+          phase: 2,
+        },
+        {
+          x: width * 0.5,
+          y: height * 0.8,
+          radius: 350,
+          color: 'rgba(60, 20, 120, 0.01)',
+          opacity: 1,
+          drift: 0.00025,
+          phase: 4,
+        },
+      ]
+    }
+
+    function spawnShootingStar() {
+      if (shootingStars.length > 3) return
+      shootingStars.push({
+        x: Math.random() * width * 0.8,
+        y: Math.random() * height * 0.4,
+        len: Math.random() * 80 + 40,
+        speed: Math.random() * 8 + 4,
+        opacity: 1,
+        angle: (Math.PI / 6) + Math.random() * (Math.PI / 6),
+        life: 0,
+        maxLife: 60 + Math.random() * 40,
+      })
+    }
+
+    let time = 0
+
+    function animate() {
+      if (!ctx) return
+      ctx.clearRect(0, 0, width, height)
+      time++
+
+      // Draw nebulae
+      for (const n of nebulae) {
+        n.phase += n.drift
+        const nx = n.x + Math.sin(n.phase) * 50
+        const ny = n.y + Math.cos(n.phase * 0.7) * 30
+        const gradient = ctx.createRadialGradient(nx, ny, 0, nx, ny, n.radius)
+        gradient.addColorStop(0, n.color)
+        gradient.addColorStop(1, 'transparent')
+        ctx.fillStyle = gradient
+        ctx.fillRect(nx - n.radius, ny - n.radius, n.radius * 2, n.radius * 2)
+      }
+
+      // Draw stars with twinkle
+      for (const star of stars) {
+        star.twinklePhase += star.twinkleSpeed
+        const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase)
+        const currentOpacity = star.opacity * twinkle
+
+        ctx.beginPath()
+        ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity})`
+        ctx.fill()
+
+        // Glow for larger stars
+        if (star.size > 1.2) {
+          ctx.beginPath()
+          ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(200, 220, 255, ${currentOpacity * 0.08})`
+          ctx.fill()
+        }
+
+        // Slow drift upward
+        star.y -= star.speed
+        if (star.y < -5) {
+          star.y = height + 5
+          star.x = Math.random() * width
+        }
+      }
+
+      // Shooting stars
+      if (Math.random() < 0.003) spawnShootingStar()
+
+      for (let i = shootingStars.length - 1; i >= 0; i--) {
+        const s = shootingStars[i]
+        s.life++
+        s.x += Math.cos(s.angle) * s.speed
+        s.y += Math.sin(s.angle) * s.speed
+
+        const lifeRatio = s.life / s.maxLife
+        s.opacity = 1 - lifeRatio
+
+        // Draw shooting star trail
+        const tailX = s.x - Math.cos(s.angle) * s.len
+        const tailY = s.y - Math.sin(s.angle) * s.len
+
+        const gradient = ctx.createLinearGradient(tailX, tailY, s.x, s.y)
+        gradient.addColorStop(0, 'transparent')
+        gradient.addColorStop(0.6, `rgba(180, 200, 255, ${s.opacity * 0.3})`)
+        gradient.addColorStop(1, `rgba(255, 255, 255, ${s.opacity})`)
+
+        ctx.beginPath()
+        ctx.moveTo(tailX, tailY)
+        ctx.lineTo(s.x, s.y)
+        ctx.strokeStyle = gradient
+        ctx.lineWidth = 1.5
+        ctx.stroke()
+
+        // Head glow
+        ctx.beginPath()
+        ctx.arc(s.x, s.y, 2, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`
+        ctx.fill()
+
+        if (s.life >= s.maxLife) {
+          shootingStars.splice(i, 1)
+        }
+      }
+
+      animationId = requestAnimationFrame(animate)
+    }
+
+    resize()
+    animate()
+
+    window.addEventListener('resize', resize)
+
+    return () => {
+      cancelAnimationFrame(animationId)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
   return (
-    <div className="starfield pointer-events-none fixed inset-0 z-0 h-screen w-full opacity-60">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className={`stars stars-${i + 1}`} />
-      ))}
-    </div>
+    <canvas
+      ref={canvasRef}
+      className="pointer-events-none fixed inset-0 z-0 h-screen w-full"
+    />
   )
 }
 
-/* ─── ToolCard ─── */
+/* ─── ToolCard with progress ─── */
 function ToolCard({
   title,
   description,
   url,
   icon: Icon,
+  progress,
+  devStatus,
 }: {
   title: string
   description: string
   url: string
   icon: React.ElementType
+  progress?: number
+  devStatus?: string
 }) {
+  const isLive = !progress && progress !== 0
+
   return (
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="liquid-glass group flex flex-col rounded-2xl p-8 transition-all hover:scale-[1.02] cursor-pointer"
+      className="liquid-glass group flex flex-col rounded-2xl p-8 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
     >
       <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5">
         <Icon className="h-6 w-6 text-white" />
@@ -52,12 +274,39 @@ function ToolCard({
       >
         {title}
       </h3>
-      <p className="text-sm leading-relaxed text-muted-foreground">
+      <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
         {description}
       </p>
-      {url && (
-        <div className="mt-6 flex items-center text-sm font-medium text-white/70 transition-colors group-hover:text-white">
+
+      {/* Progress bar for in-dev features */}
+      {progress !== undefined && (
+        <div className="mt-auto space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-1.5 text-amber-400/80">
+              <Hammer className="h-3 w-3" />
+              {devStatus || 'Đang phát triển'}
+            </span>
+            <span className="font-medium text-white/70">{progress}%</span>
+          </div>
+          <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-amber-500/60 to-amber-400/80 transition-all duration-1000"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {isLive && url && url !== '#' && (
+        <div className="mt-auto flex items-center text-sm font-medium text-white/70 transition-colors group-hover:text-white">
           Trải nghiệm <ArrowRight className="ml-2 h-4 w-4" />
+        </div>
+      )}
+
+      {isLive && url === '#' && (
+        <div className="mt-auto flex items-center gap-1.5 text-xs text-emerald-400/70">
+          <Sparkles className="h-3 w-3" />
+          Sẵn sàng
         </div>
       )}
     </a>
@@ -95,12 +344,16 @@ function FeaturedTools() {
           description="Lớp API tiện ích cho các công cụ trong hệ sinh thái P-ShareHub."
           url="#"
           icon={Code}
+          progress={70}
+          devStatus="Đang phát triển"
         />
         <ToolCard
           title="Vocodo"
           description="Ý tưởng chuyển đổi ngôn ngữ ký hiệu thành giọng nói bằng AI trong thời gian thực."
           url="#"
           icon={Mic}
+          progress={30}
+          devStatus="Giai đoạn ý tưởng"
         />
       </div>
     </section>
@@ -146,16 +399,12 @@ function ProductHighlights() {
           </div>
         </div>
         <div className="relative w-full flex-1">
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent p-8 backdrop-blur-sm flex items-center justify-center">
-            <div className="liquid-glass w-full max-w-md space-y-4 rounded-xl p-6">
-              <div className="flex h-40 items-center justify-center rounded-lg border border-white/10 bg-white/5">
-                <BookOpen className="h-10 w-10 text-white/20" />
-              </div>
-              <div className="space-y-2">
-                <div className="h-4 w-3/4 rounded bg-white/10" />
-                <div className="h-4 w-1/2 rounded bg-white/10" />
-              </div>
-            </div>
+          <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 p-2">
+            <img
+              src="/penglish-preview.png"
+              alt="P-English Preview"
+              className="h-full w-full rounded-xl object-cover object-top"
+            />
           </div>
         </div>
       </div>
@@ -172,7 +421,7 @@ function ProductHighlights() {
           <h2
             className="text-5xl tracking-tight sm:text-6xl"
             style={{ fontFamily: 'var(--font-display)' }}
-          >
+        >
             P-DF
           </h2>
           <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
@@ -196,19 +445,40 @@ function ProductHighlights() {
           </div>
         </div>
         <div className="relative w-full flex-1">
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-bl from-white/10 to-transparent p-8 backdrop-blur-sm flex items-center justify-center">
-            <div className="liquid-glass flex h-full w-full flex-col gap-4 rounded-xl p-4">
-              <div className="flex gap-2 border-b border-white/10 pb-4">
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-white/10">
-                  <FileText className="h-4 w-4" />
+          <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 backdrop-blur-sm flex items-center justify-center p-6">
+            <div className="liquid-glass flex h-full w-full flex-col gap-3 rounded-xl p-4">
+              {/* Mock PDF Editor UI */}
+              <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-red-500/20">
+                  <FileText className="h-4 w-4 text-red-400" />
                 </div>
-                <div className="h-8 w-24 rounded bg-white/5" />
-                <div className="h-8 w-24 rounded bg-white/5" />
+                <div className="h-3 w-20 rounded bg-white/10" />
+                <div className="ml-auto flex gap-1.5">
+                  <div className="h-6 w-14 rounded bg-white/5 text-center text-[10px] leading-6 text-white/30">
+                    Gộp
+                  </div>
+                  <div className="h-6 w-14 rounded bg-white/5 text-center text-[10px] leading-6 text-white/30">
+                    Tách
+                  </div>
+                  <div className="h-6 w-14 rounded bg-white/5 text-center text-[10px] leading-6 text-white/30">
+                    Xoay
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-1 items-center justify-center rounded border border-white/5 bg-white/5">
-                <div className="font-mono text-sm text-white/20">
-                  PDF Viewer Workspace
+              <div className="flex flex-1 items-center justify-center rounded border border-white/5 bg-white/[0.02]">
+                <div className="text-center space-y-3">
+                  <FileText className="mx-auto h-12 w-12 text-white/10" />
+                  <div className="font-mono text-xs text-white/20">
+                    Kéo thả PDF vào đây
+                  </div>
+                  <div className="mx-auto h-7 w-24 rounded-full border border-white/10 bg-white/5 text-center text-[10px] leading-7 text-white/40">
+                    Chọn file
+                  </div>
                 </div>
+              </div>
+              <div className="flex items-center gap-2 pt-2">
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500/60" />
+                <span className="text-[10px] text-white/30">100% xử lý local — an toàn bảo mật</span>
               </div>
             </div>
           </div>
@@ -230,15 +500,16 @@ function AboutSection() {
           {/* Profile Photo - Elegant & Subtle */}
           <div className="relative flex-shrink-0">
             {/* Glow effect behind avatar */}
-            <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-white/10 via-white/5 to-transparent blur-xl" />
-            <div className="relative h-44 w-44 overflow-hidden rounded-full border border-white/15 shadow-[0_0_40px_rgba(255,255,255,0.06)] sm:h-52 sm:w-52">
+            <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-violet-500/10 via-white/5 to-transparent blur-2xl" />
+            <div className="absolute -inset-2 rounded-full bg-gradient-to-tr from-blue-500/5 to-transparent blur-xl" />
+            <div className="relative h-44 w-44 overflow-hidden rounded-full border border-white/15 shadow-[0_0_60px_rgba(139,92,246,0.08)] sm:h-56 sm:w-56">
               <img
                 src="/profile.jpg"
                 alt="P-ShareHub Creator"
                 className="h-full w-full object-cover"
               />
               {/* Subtle gradient overlay at bottom */}
-              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
             </div>
           </div>
 
@@ -248,7 +519,7 @@ function AboutSection() {
               className="mb-6 text-4xl leading-tight tracking-normal sm:text-5xl"
               style={{ fontFamily: 'var(--font-display)' }}
             >
-              Công cụ hữu ích không nên luôn bị khoá sau phí.
+              Tôi nghèo, bạn cũng thế.
             </h2>
             <p className="mb-8 text-lg leading-relaxed text-muted-foreground">
               P-ShareHub bắt đầu từ một ý tưởng đơn giản: những công cụ hữu ích
@@ -361,15 +632,22 @@ export default function Home() {
     }
   }, [])
 
+  const scrollToContact = useCallback(() => {
+    const el = document.getElementById('contact')
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [])
+
   return (
     <div className="relative w-full bg-black">
-      {/* Starfield Background */}
-      <Starfield />
+      {/* Galaxy Canvas Background */}
+      <GalaxyBackground />
 
       {/* Main Content Overlay */}
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Navigation Bar */}
-        <nav className="mx-auto flex w-full max-w-7xl flex-row items-center justify-between px-8 py-6">
+        <nav className="liquid-glass-nav sticky top-0 z-50 mx-auto flex w-full max-w-7xl flex-row items-center justify-between px-8 py-4">
           <div
             className="text-3xl tracking-tight text-foreground"
             style={{ fontFamily: 'var(--font-display)' }}
@@ -410,12 +688,12 @@ export default function Home() {
             </a>
           </div>
 
-          <Button
-            variant="ghost"
+          <button
+            onClick={scrollToContact}
             className="liquid-glass cursor-pointer rounded-full px-6 py-2.5 text-sm text-foreground transition-transform hover:scale-[1.03]"
           >
             Tìm hiểu thêm về P-Share
-          </Button>
+          </button>
         </nav>
 
         {/* Hero Section */}
