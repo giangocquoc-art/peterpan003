@@ -12,6 +12,12 @@ import {
   ExternalLink,
   Hammer,
   Sparkles,
+  PenLine,
+  Layers,
+  ShieldCheck,
+  Check,
+  Zap,
+  Globe,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -335,7 +341,7 @@ function FeaturedTools() {
         />
         <ToolCard
           title="P-DF"
-          description="Chỉnh sửa PDF trực tiếp, thêm chữ, sửa chữ, gộp, tách, xoay và xử lý tài liệu."
+          description="Sửa PDF ngay trên trình duyệt — chỉnh chữ, gộp, tách, xoay. Xử lý 100% local, bảo mật tuyệt đối."
           url="https://www.sejda.com/pdf-editor"
           icon={FileText}
         />
@@ -357,6 +363,57 @@ function FeaturedTools() {
         />
       </div>
     </section>
+  )
+}
+
+/* ─── Feature Category Card ─── */
+function FeatureCategory({
+  icon: Icon,
+  title,
+  color,
+  items,
+}: {
+  icon: React.ElementType
+  title: string
+  color: 'violet' | 'sky' | 'emerald'
+  items: string[]
+}) {
+  const colorMap = {
+    violet: {
+      bg: 'bg-violet-500/10',
+      icon: 'text-violet-400',
+      check: 'text-violet-400/60',
+    },
+    sky: {
+      bg: 'bg-sky-500/10',
+      icon: 'text-sky-400',
+      check: 'text-sky-400/60',
+    },
+    emerald: {
+      bg: 'bg-emerald-500/10',
+      icon: 'text-emerald-400',
+      check: 'text-emerald-400/60',
+    },
+  }
+  const c = colorMap[color]
+
+  return (
+    <div className="liquid-glass rounded-xl p-4 transition-all duration-300 hover:scale-[1.02]">
+      <div className="mb-3 flex items-center gap-2">
+        <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${c.bg}`}>
+          <Icon className={`h-4 w-4 ${c.icon}`} />
+        </div>
+        <span className="text-sm font-medium text-white/90">{title}</span>
+      </div>
+      <ul className="space-y-1.5">
+        {items.map((item) => (
+          <li key={item} className="flex items-center gap-2 text-xs text-white/50">
+            <Check className={`h-3 w-3 ${c.check}`} />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
@@ -414,26 +471,57 @@ function ProductHighlights() {
         className="flex flex-col items-center gap-16 lg:flex-row-reverse"
         id="p-df"
       >
-        <div className="flex-1 space-y-6">
-          <div className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
+        <div className="flex-1 space-y-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
+            <FileText className="h-3.5 w-3.5" />
             PDF Editor
           </div>
           <h2
             className="text-5xl tracking-tight sm:text-6xl"
             style={{ fontFamily: 'var(--font-display)' }}
-        >
+          >
             P-DF
           </h2>
           <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Chỉnh sửa PDF trực tiếp trên trình duyệt — thêm chữ, sửa chữ, gộp,
-            tách, xoay và xử lý tài liệu. Không cần cài đặt, không cần tải phần
-            mềm.
-            <br />
-            <br />
-            Tất cả xử lý locally trên browser. Tài liệu của bạn không rời khỏi
-            máy.
+            Sửa PDF ngay trên trình duyệt — nhanh, gọn, bảo mật.
+            Không cần cài đặt, không cần tải phần mềm.
           </p>
-          <div className="pt-4">
+
+          {/* Feature Categories */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <FeatureCategory
+              icon={PenLine}
+              title="Chỉnh sửa"
+              color="violet"
+              items={['Thêm & sửa chữ', 'Điền form, ký tên', 'Highlight & ghi chú']}
+            />
+            <FeatureCategory
+              icon={Layers}
+              title="Tổ chức"
+              color="sky"
+              items={['Gộp & tách file', 'Xoay & sắp xếp trang', 'Nén & tối ưu dung lượng']}
+            />
+            <FeatureCategory
+              icon={ShieldCheck}
+              title="Bảo mật"
+              color="emerald"
+              items={['Xử lý 100% local', 'File không rời khỏi máy', 'Không upload server']}
+            />
+          </div>
+
+          {/* Quick info pills */}
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
+              <Zap className="h-3 w-3 text-amber-400/60" />
+              Không cần cài đặt
+            </div>
+            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
+              <Globe className="h-3 w-3 text-sky-400/60" />
+              Chạy trên mọi trình duyệt
+            </div>
+          </div>
+
+          <div className="pt-2">
             <a
               href="https://www.sejda.com/pdf-editor"
               target="_blank"
