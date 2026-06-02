@@ -48,7 +48,7 @@ function ToolCard({
       </div>
       <h3
         className="mb-3 text-2xl"
-        style={{ fontFamily: '"Instrument Serif", serif' }}
+        style={{ fontFamily: 'var(--font-display)' }}
       >
         {title}
       </h3>
@@ -71,7 +71,7 @@ function FeaturedTools() {
       <div className="mb-16">
         <h2
           className="mb-4 text-4xl tracking-tight sm:text-5xl"
-          style={{ fontFamily: '"Instrument Serif", serif' }}
+          style={{ fontFamily: 'var(--font-display)' }}
         >
           Công cụ nổi bật
         </h2>
@@ -125,7 +125,7 @@ function ProductHighlights() {
           </div>
           <h2
             className="text-5xl tracking-tight sm:text-6xl"
-            style={{ fontFamily: '"Instrument Serif", serif' }}
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             P-English
           </h2>
@@ -171,7 +171,7 @@ function ProductHighlights() {
           </div>
           <h2
             className="text-5xl tracking-tight sm:text-6xl"
-            style={{ fontFamily: '"Instrument Serif", serif' }}
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             P-DF
           </h2>
@@ -225,21 +225,41 @@ function AboutSection() {
       className="w-full border-y border-white/10 bg-white/[0.02]"
       id="about"
     >
-      <div className="mx-auto w-full max-w-3xl px-8 py-32 text-center text-balance">
-        <h2
-          className="mb-8 text-4xl leading-tight tracking-normal sm:text-5xl"
-          style={{ fontFamily: '"Instrument Serif", serif' }}
-        >
-          Công cụ hữu ích không nên luôn bị khoá sau phí.
-        </h2>
-        <p className="mb-12 text-lg leading-relaxed text-muted-foreground">
-          P-ShareHub bắt đầu từ một ý tưởng đơn giản: những công cụ hữu ích
-          không nên luôn bị khóa sau các khoản phí. Dự án này được xây dựng để
-          sinh viên, người học và người sáng tạo có thể tiếp cận công cụ học
-          tập và xử lý tài liệu dễ hơn.
-        </p>
-        <div className="inline-block rounded-full border border-white/10 bg-white/5 px-6 py-2 text-sm uppercase tracking-widest text-white/60">
-          From Vietnam to the world 🇻🇳
+      <div className="mx-auto w-full max-w-5xl px-8 py-32">
+        <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-16">
+          {/* Profile Photo - Elegant & Subtle */}
+          <div className="relative flex-shrink-0">
+            {/* Glow effect behind avatar */}
+            <div className="absolute -inset-3 rounded-full bg-gradient-to-br from-white/10 via-white/5 to-transparent blur-xl" />
+            <div className="relative h-44 w-44 overflow-hidden rounded-full border border-white/15 shadow-[0_0_40px_rgba(255,255,255,0.06)] sm:h-52 sm:w-52">
+              <img
+                src="/profile.jpg"
+                alt="P-ShareHub Creator"
+                className="h-full w-full object-cover"
+              />
+              {/* Subtle gradient overlay at bottom */}
+              <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
+            </div>
+          </div>
+
+          {/* Text Content */}
+          <div className="text-balance text-center lg:text-left">
+            <h2
+              className="mb-6 text-4xl leading-tight tracking-normal sm:text-5xl"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Công cụ hữu ích không nên luôn bị khoá sau phí.
+            </h2>
+            <p className="mb-8 text-lg leading-relaxed text-muted-foreground">
+              P-ShareHub bắt đầu từ một ý tưởng đơn giản: những công cụ hữu ích
+              không nên luôn bị khóa sau các khoản phí. Dự án này được xây dựng để
+              sinh viên, người học và người sáng tạo có thể tiếp cận công cụ học
+              tập và xử lý tài liệu dễ hơn.
+            </p>
+            <div className="inline-block rounded-full border border-white/10 bg-white/5 px-6 py-2 text-sm uppercase tracking-widest text-white/60">
+              From Vietnam to the world 🇻🇳
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -253,7 +273,7 @@ function Footer() {
       <div className="mx-auto w-full max-w-7xl">
         <h2
           className="mb-16 text-4xl tracking-tight"
-          style={{ fontFamily: '"Instrument Serif", serif' }}
+          style={{ fontFamily: 'var(--font-display)' }}
         >
           Kết nối với chúng tôi
         </h2>
@@ -346,20 +366,13 @@ export default function Home() {
       {/* Starfield Background */}
       <Starfield />
 
-      {/* User image layered in the background */}
-      <img
-        src="/profile.jpg"
-        alt="Background"
-        className="pointer-events-none fixed inset-0 z-0 h-screen w-full object-cover opacity-50 grayscale mix-blend-screen"
-      />
-
       {/* Main Content Overlay */}
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Navigation Bar */}
         <nav className="mx-auto flex w-full max-w-7xl flex-row items-center justify-between px-8 py-6">
           <div
             className="text-3xl tracking-tight text-foreground"
-            style={{ fontFamily: '"Instrument Serif", serif' }}
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             P-ShareHub
           </div>
@@ -409,7 +422,7 @@ export default function Home() {
         <main className="flex min-h-[80vh] flex-col items-center justify-center px-6 pt-32 pb-40 text-center md:py-[120px]">
           <h1
             className="animate-fade-rise max-w-7xl text-5xl font-normal leading-[0.95] tracking-[-2.46px] sm:text-7xl md:text-8xl"
-            style={{ fontFamily: '"Instrument Serif", serif' }}
+            style={{ fontFamily: 'var(--font-display)' }}
           >
             P-ShareHub
           </h1>
