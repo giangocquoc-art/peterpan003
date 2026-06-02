@@ -445,42 +445,12 @@ function ProductHighlights() {
           </div>
         </div>
         <div className="relative w-full flex-1">
-          <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 backdrop-blur-sm flex items-center justify-center p-6">
-            <div className="liquid-glass flex h-full w-full flex-col gap-3 rounded-xl p-4">
-              {/* Mock PDF Editor UI */}
-              <div className="flex items-center gap-3 border-b border-white/10 pb-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded bg-red-500/20">
-                  <FileText className="h-4 w-4 text-red-400" />
-                </div>
-                <div className="h-3 w-20 rounded bg-white/10" />
-                <div className="ml-auto flex gap-1.5">
-                  <div className="h-6 w-14 rounded bg-white/5 text-center text-[10px] leading-6 text-white/30">
-                    Gộp
-                  </div>
-                  <div className="h-6 w-14 rounded bg-white/5 text-center text-[10px] leading-6 text-white/30">
-                    Tách
-                  </div>
-                  <div className="h-6 w-14 rounded bg-white/5 text-center text-[10px] leading-6 text-white/30">
-                    Xoay
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-1 items-center justify-center rounded border border-white/5 bg-white/[0.02]">
-                <div className="text-center space-y-3">
-                  <FileText className="mx-auto h-12 w-12 text-white/10" />
-                  <div className="font-mono text-xs text-white/20">
-                    Kéo thả PDF vào đây
-                  </div>
-                  <div className="mx-auto h-7 w-24 rounded-full border border-white/10 bg-white/5 text-center text-[10px] leading-7 text-white/40">
-                    Chọn file
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 pt-2">
-                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500/60" />
-                <span className="text-[10px] text-white/30">100% xử lý local — an toàn bảo mật</span>
-              </div>
-            </div>
+          <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 p-2">
+            <img
+              src="/pdf-preview.png"
+              alt="P-DF Preview"
+              className="h-full w-full rounded-xl object-cover object-top"
+            />
           </div>
         </div>
       </div>
@@ -646,6 +616,20 @@ export default function Home() {
 
       {/* Main Content Overlay */}
       <div className="relative z-10 flex min-h-screen flex-col">
+        {/* Status Bar */}
+        <div className="status-bar relative z-50 flex items-center justify-between px-6 py-1.5 text-[11px]">
+          <div className="flex items-center gap-4">
+            <span className="text-white/40">P-ShareHub v1.0</span>
+            <span className="status-dot" />
+            <span className="text-emerald-400/70">All systems operational</span>
+          </div>
+          <div className="flex items-center gap-4 text-white/40">
+            <span>2 sản phẩm hoạt động</span>
+            <span>•</span>
+            <span>2 đang phát triển</span>
+          </div>
+        </div>
+
         {/* Navigation Bar */}
         <nav className="liquid-glass-nav sticky top-0 z-50 mx-auto flex w-full max-w-7xl flex-row items-center justify-between px-8 py-4">
           <div
@@ -707,7 +691,7 @@ export default function Home() {
 
           <p className="animate-fade-rise-delay mx-auto mt-8 max-w-2xl text-base italic leading-relaxed text-muted-foreground sm:text-lg">
             &quot;Có những người sinh ra vốn là ánh sáng, nhưng có những người phải
-            tự bước đi ra khỏi bóng tối để biến bản thân thành ánh sáng&quot;
+            tự bước ra khỏi bóng tối để biến bản thân thành ánh sáng&quot;
           </p>
 
           <button
