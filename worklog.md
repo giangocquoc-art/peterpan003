@@ -178,4 +178,102 @@ Stage Summary:
 - PDF support via pdfjs-dist (client-side)
 - No data sent to any server — everything runs in browser
 - All 5 study modes functional: Flashcard, Fill-blank, Quiz, Summary, Match
+
+---
+Task ID: 11
+Agent: main
+Task: Vietnam Atlas map overhaul — bright tiles, Vietnamese sovereignty labels, flag markers, Hoàng Sa/Trường Sa/Biển Đông data fixes
+
+Work Log:
+- Changed tile layer from CartoDB dark_matter → CartoDB Voyager (bright, light background)
+- Added sovereignty overlay labels as permanent non-interactive markers:
+  - "🇻🇳 Quần đảo Hoàng Sa" at [16.5, 112.0]
+  - "🇻🇳 Quần đảo Trường Sa" at [10.0, 114.0]
+  - "Biển Đông" at [12.0, 113.0]
+- Added Vietnamese flag 🇻🇳 markers (40px red badges with pulse animation) at Hoàng Sa and Trường Sa
+- Updated all CSS for light theme (white popups, light tooltips, light zoom controls)
+- Updated REGION_COLORS for stronger visibility on light map
+- Extended Vietnam bounds from [[8.5, 102], [23.5, 112]] → [[6.0, 102], [23.5, 117]] to include Trường Sa
+- Updated Hoàng Sa data in vietnamAtlas.ts:
+  - Changed icon from 🏝️ → 🇻🇳
+  - Changed accentColor to Vietnamese red #D4213D
+  - Removed "Pattle" foreign name from landmark (Đảo Hoàng Sa (Pattle) → Đảo Hoàng Sa)
+  - Added Vietnamese historical sources: Phủ biên tạp lục, Đại Nam thực lục, Đại Nam nhất thống chí, Hoàng Việt địa dư chí
+  - Added 1835 Minh Mạng sovereignty marker event
+  - Added Cộng hòa Việt Nam sovereignty defense until 1974
+  - All content now references Vietnamese sources only
+- Updated Trường Sa data similarly:
+  - Changed icon from ⚓ → 🇻🇳
+  - Changed accentColor to #D4213D
+  - Added Phủ biên tạp lục references
+  - Added Đại Nam nhất thống chí reference (Trường Sa thuộc tỉnh Quảng Ngãi)
+  - All content references Vietnamese sources only
+- Updated VietnamMap.tsx header: "Việt Nam 🇻🇳 — Biển Đông là của Việt Nam"
+- Added hash-based routing in page.tsx: #vietnam, #hoctap, #chat
+- All changes pass lint with 0 errors
+- Verified with Agent Browser: All checks passed (bright map, sovereignty labels visible, flag markers present, no foreign names visible, Vietnamese-only content in popups, URL hash routing works)
+
+Stage Summary:
+- Map is now bright and easy to read (CartoDB Voyager light tiles)
+- Vietnamese sovereignty clearly marked with 🇻🇳 flags and labels
+- "Yongle Qundao" and "South China Sea" no longer visible — covered by Vietnamese labels
+- All Hoàng Sa/Trường Sa/Biển Đông content uses Vietnamese sources only
+- URL hash routing: domain.xxx/#vietnam works directly
+- Zero lint errors, zero browser errors
 - Branded as "Học tập 📚" with emerald green theme
+
+---
+Task ID: 2 (map-rewrite)
+Agent: subagent
+Task: Rewrite Vietnam Interactive Map with brighter tiles, sovereignty overlays, and light theme
+
+Work Log:
+1. **Changed tile layer from CartoDB dark_matter to Voyager**: Replaced `dark_all` with `rastertiles/voyager` URL for a bright, clean map with readable labels.
+
+2. **Updated REGION_COLORS for light background**: Strengthened all region colors for better visibility on the bright Voyager tile layer:
+   - north: #3b82f6 → #2563eb (Blue)
+   - central: #f59e0b → #d97706 (Amber)
+   - south: #10b981 → #059669 (Emerald)
+   - highlands: #8b5cf6 → #7c3aed (Violet)
+   - islands: #ef4444 → #dc2626 (Red — stronger for sovereignty)
+
+3. **Extended Vietnam bounds**: Changed from [[8.5, 102], [23.5, 112]] to [[6.0, 102], [23.5, 117]] to include Hoàng Sa and Trường Sa archipelagos.
+
+4. **Added Vietnamese sovereignty overlay labels**: 3 permanent, non-interactive L.divIcon Marker labels:
+   - "🇻🇳 Quần đảo Hoàng Sa" at [16.5, 112.0] — red border, dark background, white text, 15px
+   - "🇻🇳 Quần đảo Trường Sa" at [10.0, 114.0] — red border, dark background, white text, 15px
+   - "Biển Đông" at [12.0, 113.0] — subtle border, dark background, white text, 16px
+   All use `interactive={false}` and `keyboard={false}` so they don't respond to clicks.
+
+5. **Added Vietnamese flag markers** at Hoàng Sa [16.5, 112.0] and Trường Sa [10.0, 114.0]:
+   - 40px circular badges with red gradient background
+   - 3px solid #dc2626 border with red glow effect
+   - 🇻🇳 flag emoji at 22px font-size
+   - Animated with `vietnamFlagPulse` keyframe (gentle scale + glow pulse)
+   - `interactive={false}` so they don't interfere with place markers
+
+6. **Updated CSS styles for light theme**:
+   - Popup: white background (#ffffff), dark text (#1e293b), subtle border/shadow
+   - Tooltip: white background, dark text, light shadow
+   - Zoom controls: white background, slate text colors
+   - Legend overlay: `bg-white/90` with `border-black/[0.08]` and `shadow-md`
+   - Place count overlay: same light theme treatment
+   - Added CSS classes for sovereignty labels and flag markers (transparent base)
+   - Added `vietnamFlagPulse` @keyframes animation
+   - Renamed style ID from `vietnam-map-dark-styles` to `vietnam-map-light-styles`
+
+7. **Updated popup inline styles**: Changed from dark theme to light theme:
+   - container color: #e2e8f0 → #1e293b
+   - name color: #f1f5f9 → #0f172a
+   - description color: #94a3b8 → #475569
+
+8. All existing component contracts preserved: onSelectPlace, selectedSlug, regionFilter, PlaceMarker, MapController, MapEventHandler.
+
+9. Lint passes with 0 errors.
+
+Stage Summary:
+- Map is now bright and easy to read (Voyager tiles)
+- Vietnamese sovereignty labels permanently overlay Hoàng Sa, Trường Sa, and Biển Đông
+- Vietnamese flag markers pulse at Hoàng Sa and Trường Sa
+- All UI elements updated for light theme
+- Bounds extended to show the full South China Sea (Biển Đông) area

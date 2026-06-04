@@ -1707,7 +1707,9 @@ const southPlaces: VietnamPlace[] = [
 // ─── Data: Islands (Quần đảo) ───────────────────────────────────────────────
 
 const islandPlaces: VietnamPlace[] = [
-  // ★★★ RICH ENTRY: Hoàng Sa ★★★
+  // ★★★ RICH ENTRY: Quần đảo Hoàng Sa ★★★
+  // Tất cả nội dung dựa trên tài liệu lịch sử Việt Nam: Phủ biên tạp lục, Đại Nam thực lục,
+  // Đại Nam nhất thống chí, Hoàng Việt địa dư chí, các bản đồ cổ và văn bản pháp lý Việt Nam.
   {
     id: '46',
     slug: 'hoang-sa',
@@ -1716,35 +1718,39 @@ const islandPlaces: VietnamPlace[] = [
     region: 'islands',
     coordinates: [16.5, 111.6],
     shortDescription:
-      'Quần đảo Hoàng Sa — lãnh thổ Việt Nam trên biển, chủ quyền được xác lập và bảo vệ qua nhiều thế kỷ.',
-    icon: '🏝️',
-    accentColor: '#0D47A1',
-    tags: ['chủ quyền', 'quần đảo', 'biển đảo', 'lãnh thổ'],
+      'Quần đảo Hoàng Sa — lãnh thổ thiêng liêng của Việt Nam trên Biển Đông, chủ quyền được xác lập và bảo vệ qua hàng trăm năm lịch sử.',
+    icon: '🇻🇳',
+    accentColor: '#D4213D',
+    tags: ['chủ quyền', 'quần đảo', 'Biển Đông', 'lãnh thổ', 'Hoàng Sa'],
     historyHighlights: [
-      'Từ thế kỷ 17, các chúa Nguyễn đã lập đội Hoàng Sa để khai thác và quản lý quần đảo Hoàng Sa.',
-      'Năm 1816, vua Gia Long chính thức cắm cờ chủ quyền Việt Nam tại quần đảo Hoàng Sa.',
-      'Năm 1938, chính quyền Pháp thay mặt Việt Nam đặt chủ quyền tại Hoàng Sa, xây hải đăng và trạm khí tượng.',
+      'Từ thế kỷ 17, các chúa Nguyễn đã lập Đội Hoàng Sa để hàng năm ra biển khai thác, khảo sát và xác lập chủ quyền tại quần đảo Hoàng Sa.',
+      'Năm 1816, vua Gia Long chính thức cắm cờ chủ quyền Việt Nam tại quần đảo Hoàng Sa, khẳng định chủ quyền trước quốc tế.',
+      'Năm 1835, vua Minh Mạng cho xây dựng đền, cột mốc và trồng cây trên đảo Hoàng Sa, minh chứng chủ quyền không thể chối cãi.',
+      'Đại Nam thực lục, Đại Nam nhất thống chí, Phủ biên tạp lục và Hoàng Việt địa dư chí đều ghi rõ Hoàng Sa là lãnh thổ Việt Nam.',
+      'Năm 1938, chính quyền Pháp thay mặt Việt Nam củng cố chủ quyền tại Hoàng Sa, xây hải đăng, trạm khí tượng và bia chủ quyền.',
+      'Chính quyền Cộng hòa Việt Nam đã liên tục bảo vệ và khẳng định chủ quyền tại Hoàng Sa cho đến năm 1974.',
     ],
     notableHeroes: [
       {
         name: 'Đội Hoàng Sa',
         period: 'Thế kỷ 17–19',
-        shortDescription: 'Đội thủy quân do chúa Nguyễn lập ra để khai thác, khảo sát và bảo vệ quần đảo Hoàng Sa.',
+        shortDescription: 'Đội thủy quân do chúa Nguyễn lập ra hàng năm ra Hoàng Sa khai thác, khảo sát và bảo vệ chủ quyền quần đảo.',
       },
       {
         name: 'Phạm Quang Ảnh',
         period: 'Thế kỷ 18',
-        shortDescription: 'Chỉ huy đội Hoàng Sa, dẫn đầu các chuyến hải trình khai thác quần đảo.' ,
+        shortDescription: 'Chỉ huy đội Hoàng Sa, dẫn đầu các chuyến hải trình khai thác và xác lập chủ quyền quần đảo.',
       },
       {
         name: 'Lê Quý Đôn',
         period: '1726–1784',
-        shortDescription: 'Học giả đại tài, ghi chép chi tiết về Hoàng Sa trong Phủ biên tạp lục (1776).' },
+        shortDescription: 'Học giả đại tài, ghi chép chi tiết về Hoàng Sa trong Phủ biên tạp lục (1776) — tài liệu lịch sử quan trọng nhất về chủ quyền Việt Nam tại Hoàng Sa.',
+      },
     ],
     landmarks: [
+      { name: 'Đảo Hoàng Sa', shortDescription: 'Đảo chính của quần đảo, nơi đặt trạm khí tượng và các công trình quản lý của Việt Nam.' },
       { name: 'Đảo Phú Lâm', shortDescription: 'Đảo lớn nhất quần đảo Hoàng Sa, có rừng cây và bãi cát trắng.' },
-      { name: 'Đảo Hoàng Sa (Pattle)', shortDescription: 'Đảo chính, nơi đặt trạm khí tượng và các công trình quản lý.' },
-      { name: 'Bãi cạn Bắc Hoàng Sa', shortDescription: 'Vùng biển nông phong phú tài nguyên thủy sản.' },
+      { name: 'Bãi cạn Bắc Hoàng Sa', shortDescription: 'Vùng biển nông phong phú tài nguyên thủy sản phía bắc quần đảo.' },
       { name: 'Đảo Linh Côn', shortDescription: 'Đảo nhỏ trong quần đảo, hệ sinh thái biển đa dạng.' },
     ],
     foods: [
@@ -1754,18 +1760,23 @@ const islandPlaces: VietnamPlace[] = [
       { name: 'Cá chim biển', shortDescription: 'Cá chim trắng, cá chim đen — đặc sản vùng biển Hoàng Sa.' },
     ],
     cultureNotes: [
-      'Quần đảo Hoàng Sa là chủ quyền thiêng liêng của Việt Nam, được ghi nhận trong nhiều thư tịch lịch sử và bản đồ cổ.',
-      'Các tài liệu lịch sử từ thời chúa Nguyễn, triều Nguyễn và Pháp đều xác nhận chủ quyền Việt Nam tại Hoàng Sa.',
+      'Quần đảo Hoàng Sa là chủ quyền thiêng liêng của Việt Nam, được ghi nhận trong nhiều thư tịch lịch sử và bản đồ cổ của Việt Nam.',
+      'Phủ biên tạp lục (1776) của Lê Quý Đôn, Đại Nam thực lục, Đại Nam nhất thống chí đều xác nhận Hoàng Sa là lãnh thổ Việt Nam.',
+      'Các bản đồ cổ Việt Nam từ thế kỷ 17 đều vẽ quần đảo Hoàng Sa trong lãnh thổ Việt Nam.',
+      'Nhà nước Việt Nam luôn kiên quyết bảo vệ chủ quyền tại quần đảo Hoàng Sa, phù hợp với luật pháp quốc tế và bằng chứng lịch sử.',
     ],
     suggestedLearningQuestions: [
-      'Những bằng chứng lịch sử nào khẳng định chủ quyền Việt Nam tại quần đảo Hoàng Sa?',
-      'Đội Hoàng Sa được thành lập và hoạt động như thế nào?',
-      'Vai trò của Phủ biên tạp lục trong việc ghi chép về Hoàng Sa?',
+      'Những bằng chứng lịch sử nào trong sách cổ Việt Nam khẳng định chủ quyền tại quần đảo Hoàng Sa?',
+      'Đội Hoàng Sa được các chúa Nguyễn thành lập và hoạt động như thế nào?',
+      'Vai trò của Phủ biên tạp lục và Đại Nam thực lục trong việc ghi chép về Hoàng Sa?',
+      'Tại sao quần đảo Hoàng Sa có ý nghĩa chiến lược đối với Việt Nam trên Biển Đông?',
     ],
     relatedPlaces: ['truong-sa', 'da-nang', 'quang-ngai'],
   },
 
-  // ★★★ RICH ENTRY: Trường Sa ★★★
+  // ★★★ RICH ENTRY: Quần đảo Trường Sa ★★★
+  // Tất cả nội dung dựa trên tài liệu lịch sử Việt Nam: Phủ biên tạp lục, Đại Nam thực lục,
+  // Đại Nam nhất thống chí, các bản đồ cổ và văn bản pháp lý Việt Nam.
   {
     id: '47',
     slug: 'truong-sa',
@@ -1774,35 +1785,40 @@ const islandPlaces: VietnamPlace[] = [
     region: 'islands',
     coordinates: [9.0, 114.0],
     shortDescription:
-      'Quần đảo Trường Sa — điểm tựa thiêng liêng trên biển Đông, chủ quyền Việt Nam được xác lập qua nhiều thế kỷ.',
-    icon: '⚓',
-    accentColor: '#1A237E',
-    tags: ['chủ quyền', 'quần đảo', 'biển Đông', 'lãnh thổ'],
+      'Quần đảo Trường Sa — điểm tựa thiêng liêng trên Biển Đông, chủ quyền Việt Nam được xác lập và bảo vệ qua hàng trăm năm lịch sử.',
+    icon: '🇻🇳',
+    accentColor: '#D4213D',
+    tags: ['chủ quyền', 'quần đảo', 'Biển Đông', 'lãnh thổ', 'Trường Sa'],
     historyHighlights: [
-      'Các chúa Nguyễn đã cử đội Hoàng Sa và Bắc Hải khai thác và quản lý quần đảo Trường Sa từ thế kỷ 17.',
-      'Năm 1933, chính quyền Pháp thay mặt Việt Nam khẳng định chủ quyền tại các đảo Trường Sa.',
-      'Việt Nam liên tục duy trì sự hiện diện và bảo vệ chủ quyền tại quần đảo Trường Sa từ năm 1975 đến nay.',
+      'Các chúa Nguyễn đã cử Đội Hoàng Sa và Đội Bắc Hải khai thác và quản lý quần đảo Trường Sa từ thế kỷ 17.',
+      'Phủ biên tạp lục (1776) của Lê Quý Đôn ghi chép rõ việc người Việt khai thác Trường Sa từ lâu đời.',
+      'Năm 1816, vua Gia Long khẳng định chủ quyền Việt Nam tại cả quần đảo Hoàng Sa và Trường Sa trên Biển Đông.',
+      'Đại Nam nhất thống chí ghi rõ quần đảo Trường Sa thuộc tỉnh Quảng Ngãi, là lãnh thổ Việt Nam.',
+      'Năm 1933, chính quyền Pháp thay mặt Việt Nam khẳng định chủ quyền tại các đảo Trường Sa trước quốc tế.',
+      'Việt Nam liên tục duy trì sự hiện diện và kiên quyết bảo vệ chủ quyền tại quần đảo Trường Sa từ năm 1975 đến nay.',
     ],
     notableHeroes: [
       {
         name: 'Đội Bắc Hải',
         period: 'Thế kỷ 17–19',
-        shortDescription: 'Đội thủy quân phụ trách khảo sát và khai thác quần đảo Trường Sa cùng Côn Đảo.',
+        shortDescription: 'Đội thủy quân do chúa Nguyễn lập ra, phụ trách khảo sát và khai thác quần đảo Trường Sa cùng Côn Đảo.',
       },
       {
-        name: 'Lê Văn Thủy',
-        period: 'Cận đại',
-        shortDescription: 'Sĩ quan hải quân, có công trong bảo vệ chủ quyền biển đảo Trường Sa.' },
+        name: 'Lê Quý Đôn',
+        period: '1726–1784',
+        shortDescription: 'Học giả đại tài, ghi chép chi tiết về Trường Sa trong Phủ biên tạp lục — minh chứng lịch sử chủ quyền Việt Nam.',
+      },
       {
         name: 'Các chiến sĩ Trường Sa',
         period: 'Đương đại',
-        shortDescription: 'Các cán bộ chiến sĩ hy sinh bảo vệ chủ quyền quần đảo Trường Sa.' },
+        shortDescription: 'Các cán bộ chiến sĩ hy sinh bảo vệ chủ quyền quần đảo Trường Sa — anh hùng biển đảo Việt Nam.',
+      },
     ],
     landmarks: [
-      { name: 'Đảo Trường Sa Lớn', shortDescription: 'Đảo lớn nhất, nơi đặt trạm khí tượng và công trình dân sự.' },
-      { name: 'Đảo Song Tử Tây', shortDescription: 'Đảo phía bắc nhất, có ngọn hải đăng và công trình quản lý.' },
-      { name: 'Đá Nam Yết', shortDescription: 'Đá san hô lớn, hệ sinh thái biển phong phú.' },
-      { name: 'Đảo Sinh Tồn', shortDescription: 'Đảo có công trình dân sự và quân sự, bảo vệ chủ quyền.' },
+      { name: 'Đảo Trường Sa Lớn', shortDescription: 'Đảo lớn nhất, nơi đặt trạm khí tượng, công trình dân sự và bia chủ quyền Việt Nam.' },
+      { name: 'Đảo Song Tử Tây', shortDescription: 'Đảo phía bắc nhất, có ngọn hải đăng và công trình quản lý của Việt Nam.' },
+      { name: 'Đá Nam Yết', shortDescription: 'Đá san hô lớn, hệ sinh thái biển phong phú, có công trình bảo vệ chủ quyền.' },
+      { name: 'Đảo Sinh Tồn', shortDescription: 'Đảo có công trình dân sự và quân sự, bảo vệ chủ quyền Việt Nam trên Biển Đông.' },
     ],
     foods: [
       { name: 'Hải sản Trường Sa', shortDescription: 'Cá ngừ đại dương, cá bò, ốc, tôm — tài nguyên biển phong phú quanh quần đảo.' },
@@ -1811,13 +1827,16 @@ const islandPlaces: VietnamPlace[] = [
       { name: 'Ốc biển', shortDescription: 'Các loại ốc biển đa dạng quanh rạn san hô quần đảo.' },
     ],
     cultureNotes: [
-      'Chủ quyền Việt Nam tại quần đảo Trường Sa được khẳng định qua nhiều thế kỷ với bằng chứng lịch sử rõ ràng.',
+      'Chủ quyền Việt Nam tại quần đảo Trường Sa được khẳng định qua hàng trăm năm với bằng chứng lịch sử rõ ràng trong các thư tịch cổ của Việt Nam.',
+      'Phủ biên tạp lục, Đại Nam thực lục, Đại Nam nhất thống chí đều ghi nhận Trường Sa là lãnh thổ Việt Nam.',
       '"Mỗi giọt mồ hôi, mỗi giọt máu rơi xuống Trường Sa đều là minh chứng cho ý chí bảo vệ chủ quyền dân tộc."',
+      'Nhà nước Việt Nam luôn kiên quyết bảo vệ chủ quyền tại quần đảo Trường Sa, phù hợp với luật pháp quốc tế và bằng chứng lịch sử.',
     ],
     suggestedLearningQuestions: [
-      'Những bằng chứng lịch sử nào khẳng định chủ quyền Việt Nam tại quần đảo Trường Sa?',
+      'Những bằng chứng lịch sử nào trong sách cổ Việt Nam khẳng định chủ quyền tại quần đảo Trường Sa?',
       'Đội Bắc Hải đã hoạt động như thế nào trong việc quản lý quần đảo?',
-      'Ý nghĩa chiến lược của quần đảo Trường Sa đối với Việt Nam?',
+      'Ý nghĩa chiến lược của quần đảo Trường Sa đối với Việt Nam trên Biển Đông?',
+      'Tại sao Phủ biên tạp lục được coi là minh chứng quan trọng về chủ quyền Việt Nam tại Trường Sa?',
     ],
     relatedPlaces: ['hoang-sa', 'khanh-hoa', 'phu-yen'],
   },

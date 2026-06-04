@@ -136,7 +136,7 @@ export default function VietnamMap({ onBack }: { onBack: () => void }) {
                 className="text-lg font-semibold"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                Việt Nam 🇻🇳
+                Việt Nam 🇻🇳 — Biển Đông là của Việt Nam
               </h1>
             </div>
           </div>
