@@ -34,10 +34,10 @@ import dynamic from 'next/dynamic'
 
 // Lazy load heavy components
 const ChatHabibi = dynamic(() => import('@/components/chat/ChatHabibi'), { ssr: false })
-const VietnamMap = dynamic(() => import('@/components/vietnam/VietnamMap'), { ssr: false })
+
 const StudyTool = dynamic(() => import('@/components/study/StudyTool'), { ssr: false })
 
-type View = 'home' | 'vietnam' | 'study' | 'chat'
+type View = 'home' | 'study' | 'chat'
 
 /* ─── Canvas Galaxy Background ─── */
 function GalaxyBackground() {
@@ -444,7 +444,6 @@ export default function Home() {
   const getInitialView = (): View => {
     if (typeof window === 'undefined') return 'home'
     const hash = window.location.hash.replace('#', '')
-    if (hash === 'vietnam') return 'vietnam'
     if (hash === 'hoctap') return 'study'
     if (hash === 'chat') return 'chat'
     return 'home'
@@ -473,13 +472,11 @@ export default function Home() {
   }, [])
 
   const goToVietnam = useCallback(() => {
-    navigateTo('vietnam')
-    window.scrollTo(0, 0)
-  }, [navigateTo])
+    window.location.href = '/vietnam'
+  }, [])
 
   // If not home, render the selected view
   if (view === 'chat') return <ChatHabibi onBack={() => navigateTo('home')} />
-  if (view === 'vietnam') return <VietnamMap onBack={() => navigateTo('home')} />
   if (view === 'study') return <StudyTool onBack={() => navigateTo('home')} />
 
   // Home view

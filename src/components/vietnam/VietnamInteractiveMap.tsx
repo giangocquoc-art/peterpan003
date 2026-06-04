@@ -3,18 +3,20 @@
 /**
  * VietnamInteractiveMap.tsx — Interactive Leaflet map for P-ShareHub's Vietnam Atlas
  *
- * Features:
- * - CartoDB Voyager tile layer (bright, clean labels) for easy readability
- * - Vietnamese sovereignty overlay labels (Quần đảo Hoàng Sa, Quần đảo Trường Sa, Biển Đông)
- * - Vietnamese flag markers at Hoàng Sa and Trường Sa
- * - Custom DivIcon markers with emoji icons for each place, color-coded by region
- * - Styled popups with place info and "Khám phá" action button
- * - Hover tooltips showing place names
- * - Auto-fit Vietnam bounds on load, pan/zoom on selection
- * - Region filter support
- * - Responsive container (500px desktop, 350px mobile)
- * - Custom light-themed popup styling matching Voyager tile layer
- * - Attribution hidden for cleaner map appearance
+ * CRITICAL ARCHITECTURE DECISION:
+ * This map uses CartoDB LIGHT_NOLABELS tiles — these show land/sea shapes
+ * but contain ZERO text labels. ALL place names, sea names, and island names
+ * are rendered from our controlled local dataset only.
+ *
+ * This prevents foreign disputed-place labels (Sansha, Yongle Qundao,
+ * South China Sea, Kalayaan, Chinese characters, etc.) from appearing
+ * on the map, which would be politically incorrect for a Vietnamese
+ * educational website.
+ *
+ * Sources:
+ * - Bộ Ngoại giao Việt Nam (mofa.gov.vn)
+ * - Cổng thông tin Chính phủ (chinhphu.vn)
+ * - Cổng thông tin quốc gia (vietnam.vn)
  */
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
@@ -29,9 +31,9 @@ import {
   useMapEvents,
 } from 'react-leaflet'
 import { vietnamAtlas, type RegionType, type VietnamPlace } from '@/data/vietnamAtlas'
+import { isLabelBlacklisted } from '@/lib/vietnamMapSanitizer'
 
 // ─── Leaflet CSS & Icon Fix ──────────────────────────────────────────────────
-// Leaflet requires its CSS for proper rendering
 import 'leaflet/dist/leaflet.css'
 
 // Fix Leaflet default icon issue with webpack/next.js
@@ -39,27 +41,23 @@ delete (L.Icon.Default.prototype as any)._getIconUrl
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-/** Center of Vietnam for initial map view */
 const VIETNAM_CENTER: [number, number] = [14.0583, 108.2772]
 
-/** Vietnam's approximate geographic bounds: [[south, west], [north, east]]
- *  Extended to include Hoàng Sa and Trường Sa archipelagos
- */
+/** Extended bounds to include Hoàng Sa and Trường Sa */
 const VIETNAM_BOUNDS: L.LatLngBoundsExpression = [
-  [6.0, 102],
-  [23.5, 117],
+  [5.5, 101],
+  [24.0, 118],
 ]
 
-/** Region color map — each region gets a distinctive color (stronger for light map background) */
+/** Region colors — bright and easy to see on light basemap */
 const REGION_COLORS: Record<RegionType, string> = {
-  north: '#2563eb',     // Blue — stronger
-  central: '#d97706',   // Amber — stronger
-  south: '#059669',     // Emerald — stronger
-  highlands: '#7c3aed', // Violet — stronger
-  islands: '#dc2626',   // Red — stronger for sovereignty
+  north: '#2563eb',
+  central: '#d97706',
+  south: '#059669',
+  highlands: '#7c3aed',
+  islands: '#dc2626',
 }
 
-/** Region emoji icons for legend */
 const REGION_ICONS: Record<RegionType, string> = {
   north: '🏔️',
   central: '🏯',
@@ -68,45 +66,79 @@ const REGION_ICONS: Record<RegionType, string> = {
   islands: '🏝️',
 }
 
-/** Type badge labels in Vietnamese */
 const TYPE_LABELS: Record<string, string> = {
   city: 'Thành phố',
   province: 'Tỉnh',
   archipelago: 'Quần đảo',
 }
 
-/** Default zoom level for the initial view */
 const DEFAULT_ZOOM = 6
-
-/** Zoom level when a place is selected */
 const SELECTED_ZOOM = 10
+
+// ─── Custom Sovereignty Labels (rendered from our controlled data) ────────────
+// These are the ONLY labels that appear in the sea/island area.
+// No external tile labels are used.
+
+interface SovereigntyLabel {
+  position: [number, number]
+  text: string
+  style: 'primary' | 'secondary' | 'sea'
+  isClickable?: boolean
+  slug?: string
+}
+
+const SOVEREIGNTY_LABELS: SovereigntyLabel[] = [
+  // ── Hoàng Sa ──
+  {
+    position: [16.5, 112.0],
+    text: '🇻🇳 Quần đảo Hoàng Sa',
+    style: 'primary',
+    isClickable: true,
+    slug: 'hoang-sa',
+  },
+  // ── Trường Sa ──
+  {
+    position: [9.5, 114.0],
+    text: '🇻🇳 Quần đảo Trường Sa',
+    style: 'primary',
+    isClickable: true,
+    slug: 'truong-sa',
+  },
+  // ── Biển Đông ──
+  {
+    position: [12.5, 113.5],
+    text: 'BIỂN ĐÔNG',
+    style: 'sea',
+  },
+  // ── Việt Nam label in the sea ──
+  {
+    position: [14.0, 110.0],
+    text: 'VIỆT NAM',
+    style: 'secondary',
+  },
+]
+
+// ─── Vietnamese Flag Markers ─────────────────────────────────────────────────
+
+const FLAG_MARKERS: Array<{ position: [number, number]; label: string }> = [
+  { position: [16.5, 112.0], label: 'Hoàng Sa' },
+  { position: [9.5, 114.0], label: 'Trường Sa' },
+]
 
 // ─── Props Interface ─────────────────────────────────────────────────────────
 
 interface VietnamInteractiveMapProps {
-  /** Callback when user clicks "Khám phá" in a popup */
   onSelectPlace: (slug: string) => void
-  /** Currently selected place slug — map will pan/zoom to it */
   selectedSlug?: string
-  /** Filter places by region, or show all */
   regionFilter?: RegionType | 'all'
 }
 
-// ─── Map Controller (handles programmatic map movements) ─────────────────────
+// ─── Map Controller ──────────────────────────────────────────────────────────
 
-/**
- * MapController — a component that hooks into the Leaflet map instance
- * to perform programmatic actions like fitBounds and flyTo.
- */
-function MapController({
-  selectedSlug,
-}: {
-  selectedSlug?: string
-}) {
+function MapController({ selectedSlug }: { selectedSlug?: string }) {
   const map = useMap()
   const hasFittedBounds = useRef(false)
 
-  // Fit Vietnam bounds on initial load
   useEffect(() => {
     if (!hasFittedBounds.current) {
       map.fitBounds(VIETNAM_BOUNDS, { padding: [30, 30] })
@@ -114,13 +146,10 @@ function MapController({
     }
   }, [map])
 
-  // Pan/zoom to selected place
   useEffect(() => {
     if (!selectedSlug) return
-
     const place = vietnamAtlas.find((p) => p.slug === selectedSlug)
     if (!place) return
-
     map.flyTo(place.coordinates, SELECTED_ZOOM, {
       duration: 1.2,
       easeLinearity: 0.25,
@@ -130,13 +159,7 @@ function MapController({
   return null
 }
 
-// ─── Map Event Handler (for click-outside-to-deselect) ───────────────────────
-
-function MapEventHandler({
-  onMapClick,
-}: {
-  onMapClick: () => void
-}) {
+function MapEventHandler({ onMapClick }: { onMapClick: () => void }) {
   useMapEvents({
     click() {
       onMapClick()
@@ -147,13 +170,10 @@ function MapEventHandler({
 
 // ─── Custom DivIcon Factory ──────────────────────────────────────────────────
 
-/**
- * createPlaceIcon — creates a custom L.divIcon with an emoji badge
- * for a given place, adapting size based on selection/hover state.
- */
 function createPlaceIcon(place: VietnamPlace, isSelected: boolean, isHovered: boolean) {
   const size = isSelected ? 40 : isHovered ? 36 : 28
   const regionColor = REGION_COLORS[place.region]
+  const isArchipelago = place.type === 'archipelago'
 
   const html = `
     <div style="
@@ -170,7 +190,7 @@ function createPlaceIcon(place: VietnamPlace, isSelected: boolean, isHovered: bo
           position: absolute;
           inset: -4px;
           border-radius: 50%;
-          background: ${regionColor}33;
+          background: ${regionColor}22;
           animation: vietnamPulse 2s ease-in-out infinite;
         "></div>
       ` : ''}
@@ -179,14 +199,14 @@ function createPlaceIcon(place: VietnamPlace, isSelected: boolean, isHovered: bo
         width: ${size}px;
         height: ${size}px;
         border-radius: 50%;
-        background: ${regionColor}22;
-        border: 2px solid ${regionColor};
+        background: ${isArchipelago ? `${regionColor}20` : 'white'};
+        border: 2.5px solid ${regionColor};
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: ${isSelected ? 20 : isHovered ? 18 : 14}px;
         line-height: 1;
-        box-shadow: 0 0 ${isSelected ? 16 : 8}px ${regionColor}66;
+        box-shadow: 0 2px ${isSelected ? 12 : 6}px ${regionColor}33;
         cursor: pointer;
         transition: all 0.2s ease;
       ">
@@ -206,10 +226,6 @@ function createPlaceIcon(place: VietnamPlace, isSelected: boolean, isHovered: bo
 
 // ─── Place Marker Component ──────────────────────────────────────────────────
 
-/**
- * PlaceMarker — renders a custom DivIcon Marker for a VietnamPlace
- * with hover effects, tooltip, and styled popup.
- */
 function PlaceMarker({
   place,
   isSelected,
@@ -226,8 +242,8 @@ function PlaceMarker({
   onSelect: (slug: string) => void
 }) {
   const regionColor = REGION_COLORS[place.region]
+  const isArchipelago = place.type === 'archipelago'
 
-  // Memoize icon creation to avoid re-creating on every render
   const icon = useMemo(
     () => createPlaceIcon(place, isSelected, isHovered),
     [place, isSelected, isHovered]
@@ -242,18 +258,16 @@ function PlaceMarker({
         mouseout: onHoverEnd,
       }}
     >
-      {/* Tooltip on hover — shows place name */}
       <Tooltip
         direction="top"
         offset={[0, -10]}
         className="vietnam-map-tooltip"
       >
         <span style={{ fontWeight: 600, fontSize: '13px' }}>
-          {place.name}
+          {isArchipelago && '🇻🇳 '}{place.name}
         </span>
       </Tooltip>
 
-      {/* Popup on click — styled place info card */}
       <Popup
         maxWidth={260}
         minWidth={220}
@@ -261,30 +275,35 @@ function PlaceMarker({
         className="vietnam-map-popup"
       >
         <div style={popupStyles.container}>
-          {/* Header: icon + name */}
           <div style={popupStyles.header}>
             <span style={popupStyles.icon}>{place.icon}</span>
-            <span style={popupStyles.name}>{place.name}</span>
+            <div>
+              <span style={popupStyles.name}>
+                {isArchipelago && '🇻🇳 '}{place.name}
+              </span>
+              {isArchipelago && (
+                <div style={{ fontSize: '10px', color: '#dc2626', fontWeight: 600, marginTop: 2 }}>
+                  Thuộc chủ quyền Việt Nam
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Type badge */}
           <div style={popupStyles.badgeRow}>
             <span
               style={{
                 ...popupStyles.badge,
-                backgroundColor: `${regionColor}22`,
+                backgroundColor: `${regionColor}12`,
                 color: regionColor,
-                borderColor: `${regionColor}44`,
+                borderColor: `${regionColor}30`,
               }}
             >
               {TYPE_LABELS[place.type] || place.type}
             </span>
           </div>
 
-          {/* Description */}
           <p style={popupStyles.description}>{place.shortDescription}</p>
 
-          {/* Action button */}
           <button
             style={{
               ...popupStyles.button,
@@ -296,11 +315,13 @@ function PlaceMarker({
             }}
             onMouseEnter={(e) => {
               ;(e.currentTarget as HTMLButtonElement).style.opacity = '0.85'
-              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'
+              ;(e.currentTarget as HTMLButtonElement).style.transform =
+                'translateY(-1px)'
             }}
             onMouseLeave={(e) => {
               ;(e.currentTarget as HTMLButtonElement).style.opacity = '1'
-              ;(e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'
+              ;(e.currentTarget as HTMLButtonElement).style.transform =
+                'translateY(0)'
             }}
           >
             Khám phá →
@@ -311,7 +332,7 @@ function PlaceMarker({
   )
 }
 
-// ─── Popup Inline Styles (light theme for Voyager tile layer) ────────────────
+// ─── Popup Styles ─────────────────────────────────────────────────────────────
 
 const popupStyles: Record<string, React.CSSProperties> = {
   container: {
@@ -336,6 +357,7 @@ const popupStyles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
     color: '#0f172a',
     letterSpacing: '-0.01em',
+    display: 'block',
   },
   badgeRow: {
     display: 'flex',
@@ -372,14 +394,9 @@ const popupStyles: Record<string, React.CSSProperties> = {
   },
 }
 
-// ─── Global CSS Overrides for Leaflet Popups ──────────────────────────────────
+// ─── CSS Overrides ────────────────────────────────────────────────────────────
 
-/**
- * Injects a <style> tag to override Leaflet's default popup and tooltip
- * styles to match P-ShareHub's light theme (Voyager tile layer).
- * This runs once on mount.
- */
-function useLeafletDarkStyles() {
+function useLeafletStyles() {
   useEffect(() => {
     const styleId = 'vietnam-map-light-styles'
     if (document.getElementById(styleId)) return
@@ -413,8 +430,8 @@ function useLeafletDarkStyles() {
 
       /* ── Flag pulse animation ── */
       @keyframes vietnamFlagPulse {
-        0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(220, 38, 38, 0.6), 0 0 32px rgba(220, 38, 38, 0.3); }
-        50% { transform: scale(1.08); box-shadow: 0 0 24px rgba(220, 38, 38, 0.8), 0 0 48px rgba(220, 38, 38, 0.4); }
+        0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(220, 38, 38, 0.5), 0 0 24px rgba(220, 38, 38, 0.2); }
+        50% { transform: scale(1.06); box-shadow: 0 0 20px rgba(220, 38, 38, 0.7), 0 0 40px rgba(220, 38, 38, 0.3); }
       }
 
       /* ── Popup overrides — light theme ── */
@@ -422,8 +439,8 @@ function useLeafletDarkStyles() {
         background: #ffffff;
         color: #1e293b;
         border-radius: 14px;
-        border: 1px solid rgba(0, 0, 0, 0.08);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
         padding: 4px;
       }
       .vietnam-map-popup .leaflet-popup-content {
@@ -432,7 +449,7 @@ function useLeafletDarkStyles() {
       }
       .vietnam-map-popup .leaflet-popup-tip {
         background: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.06);
         border-top: none;
         border-right: none;
         box-shadow: none;
@@ -451,9 +468,9 @@ function useLeafletDarkStyles() {
       .vietnam-map-tooltip {
         background: #ffffff !important;
         color: #1e293b !important;
-        border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        border: 1px solid rgba(0, 0, 0, 0.06) !important;
         border-radius: 8px !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
         padding: 4px 10px !important;
         font-size: 13px !important;
       }
@@ -465,11 +482,11 @@ function useLeafletDarkStyles() {
       .leaflet-control-zoom a {
         background-color: #ffffff !important;
         color: #475569 !important;
-        border-color: rgba(0, 0, 0, 0.1) !important;
+        border-color: rgba(0, 0, 0, 0.06) !important;
         transition: all 0.15s ease;
       }
       .leaflet-control-zoom a:hover {
-        background-color: #f1f5f9 !important;
+        background-color: #f8fafc !important;
         color: #0f172a !important;
       }
     `
@@ -489,24 +506,32 @@ export default function VietnamInteractiveMap({
   selectedSlug,
   regionFilter = 'all',
 }: VietnamInteractiveMapProps) {
-  // Track which marker is being hovered
   const [hoveredSlug, setHoveredSlug] = useState<string | null>(null)
 
-  // Inject dark theme CSS overrides for Leaflet
-  useLeafletDarkStyles()
+  useLeafletStyles()
 
-  // Filter places by region if a filter is applied
   const visiblePlaces = vietnamAtlas.filter(
     (place) => regionFilter === 'all' || place.region === regionFilter
   )
 
-  // Handle map click (deselect)
-  const handleMapClick = useCallback(() => {
-    // Could call a parent deselect handler here if needed
-  }, [])
+  const handleMapClick = useCallback(() => {}, [])
+
+  // Defensive check: ensure no visible place has a blacklisted name
+  const safePlaces = visiblePlaces.filter((place) => {
+    if (isLabelBlacklisted(place.name)) {
+      console.warn(
+        `[VietnamMapSanitizer] Blocked blacklisted place name: "${place.name}"`
+      )
+      return false
+    }
+    return true
+  })
 
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl border border-white/[0.06] min-h-[350px] md:min-h-[500px]" style={{ height: 'min(70vh, 600px)' }}>
+    <div
+      className="relative w-full overflow-hidden rounded-2xl border border-slate-200 shadow-lg"
+      style={{ height: 'min(70vh, 600px)', minHeight: '350px' }}
+    >
       <MapContainer
         center={VIETNAM_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -514,145 +539,105 @@ export default function VietnamInteractiveMap({
         zoomControl={true}
         attributionControl={false}
       >
-        {/* CartoDB Voyager tile layer — bright, clean labels */}
+        {/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            TILE LAYER: CartoDB LIGHT_NOLABELS
+            This tile layer shows land/sea shapes but contains ZERO text labels.
+            ALL place names are rendered from our controlled local dataset.
+            This prevents "Yongle Qundao", "Sansha", "South China Sea",
+            "Kalayaan", Chinese characters, and other foreign disputed-place
+            labels from appearing on the map.
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
         />
 
-        {/* ── Vietnamese Sovereignty Overlay Labels ── */}
-        {/* These are PERMANENT, NON-INTERACTIVE labels that assert Vietnamese sovereignty */}
-        <Marker
-          position={[16.5, 112.0]}
-          icon={L.divIcon({
-            html: `<div style="
-              background: rgba(0, 0, 0, 0.72);
-              color: #ffffff;
-              font-size: 15px;
-              font-weight: 700;
-              padding: 5px 12px;
-              border-radius: 6px;
-              white-space: nowrap;
-              text-align: center;
-              border: 2px solid #dc2626;
-              box-shadow: 0 2px 12px rgba(220, 38, 38, 0.4);
-              font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
-              letter-spacing: 0.02em;
-              line-height: 1.4;
-            ">🇻🇳 Quần đảo Hoàng Sa</div>`,
-            className: 'vietnam-sovereignty-label',
-            iconSize: [0, 0],
-            iconAnchor: [0, 0],
-          })}
-          interactive={false}
-          keyboard={false}
-        />
-        <Marker
-          position={[10.0, 114.0]}
-          icon={L.divIcon({
-            html: `<div style="
-              background: rgba(0, 0, 0, 0.72);
-              color: #ffffff;
-              font-size: 15px;
-              font-weight: 700;
-              padding: 5px 12px;
-              border-radius: 6px;
-              white-space: nowrap;
-              text-align: center;
-              border: 2px solid #dc2626;
-              box-shadow: 0 2px 12px rgba(220, 38, 38, 0.4);
-              font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
-              letter-spacing: 0.02em;
-              line-height: 1.4;
-            ">🇻🇳 Quần đảo Trường Sa</div>`,
-            className: 'vietnam-sovereignty-label',
-            iconSize: [0, 0],
-            iconAnchor: [0, 0],
-          })}
-          interactive={false}
-          keyboard={false}
-        />
-        <Marker
-          position={[12.0, 113.0]}
-          icon={L.divIcon({
-            html: `<div style="
-              background: rgba(0, 0, 0, 0.6);
-              color: #ffffff;
-              font-size: 16px;
-              font-weight: 700;
-              padding: 4px 14px;
-              border-radius: 6px;
-              white-space: nowrap;
-              text-align: center;
-              border: 1.5px solid rgba(255, 255, 255, 0.3);
-              box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-              font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
-              letter-spacing: 0.04em;
-              line-height: 1.4;
-            ">Biển Đông</div>`,
-            className: 'vietnam-sovereignty-label',
-            iconSize: [0, 0],
-            iconAnchor: [0, 0],
-          })}
-          interactive={false}
-          keyboard={false}
-        />
+        {/* ── Sovereignty Labels (from our controlled dataset) ── */}
+        {SOVEREIGNTY_LABELS.map((label, i) => {
+          if (isLabelBlacklisted(label.text)) return null
+
+          const isPrimary = label.style === 'primary'
+          const isSea = label.style === 'sea'
+          const isSecondary = label.style === 'secondary'
+
+          return (
+            <Marker
+              key={`sovereignty-${i}`}
+              position={label.position}
+              icon={L.divIcon({
+                html: `<div style="
+                  background: ${
+                    isPrimary
+                      ? 'rgba(220, 38, 38, 0.9)'
+                      : isSea
+                      ? 'rgba(59, 130, 246, 0.75)'
+                      : 'rgba(100, 116, 139, 0.6)'
+                  };
+                  color: #ffffff;
+                  font-size: ${isPrimary ? '14px' : isSea ? '16px' : '13px'};
+                  font-weight: ${isPrimary ? '700' : isSea ? '800' : '600'};
+                  padding: ${isPrimary ? '5px 12px' : isSea ? '4px 16px' : '3px 10px'};
+                  border-radius: 6px;
+                  white-space: nowrap;
+                  text-align: center;
+                  border: ${isPrimary ? '2px solid #dc2626' : isSea ? '1.5px solid rgba(59, 130, 246, 0.5)' : '1px solid rgba(255,255,255,0.3)'};
+                  box-shadow: ${isPrimary ? '0 2px 12px rgba(220, 38, 38, 0.4)' : isSea ? '0 2px 10px rgba(59, 130, 246, 0.3)' : '0 1px 6px rgba(0,0,0,0.15)'};
+                  font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+                  letter-spacing: ${isSea ? '0.12em' : '0.02em'};
+                  line-height: 1.4;
+                  cursor: ${label.isClickable ? 'pointer' : 'default'};
+                ">${label.text}</div>`,
+                className: 'vietnam-sovereignty-label',
+                iconSize: [0, 0],
+                iconAnchor: [0, 0],
+              })}
+              interactive={!!label.isClickable}
+              keyboard={false}
+              {...(label.isClickable && label.slug
+                ? {
+                    eventHandlers: {
+                      click: () => onSelectPlace(label.slug!),
+                    },
+                  }
+                : {})}
+            />
+          )
+        })}
 
         {/* ── Vietnamese Flag Markers at Hoàng Sa & Trường Sa ── */}
-        <Marker
-          position={[16.5, 112.0]}
-          icon={L.divIcon({
-            html: `<div style="
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-              border: 3px solid #dc2626;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 22px;
-              line-height: 1;
-              box-shadow: 0 0 16px rgba(220, 38, 38, 0.6), 0 0 32px rgba(220, 38, 38, 0.3);
-              animation: vietnamFlagPulse 3s ease-in-out infinite;
-            ">🇻🇳</div>`,
-            className: 'vietnam-flag-marker',
-            iconSize: [40, 40],
-            iconAnchor: [20, 20],
-          })}
-          interactive={false}
-          keyboard={false}
-        />
-        <Marker
-          position={[10.0, 114.0]}
-          icon={L.divIcon({
-            html: `<div style="
-              width: 40px;
-              height: 40px;
-              border-radius: 50%;
-              background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-              border: 3px solid #dc2626;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 22px;
-              line-height: 1;
-              box-shadow: 0 0 16px rgba(220, 38, 38, 0.6), 0 0 32px rgba(220, 38, 38, 0.3);
-              animation: vietnamFlagPulse 3s ease-in-out infinite;
-            ">🇻🇳</div>`,
-            className: 'vietnam-flag-marker',
-            iconSize: [40, 40],
-            iconAnchor: [20, 20],
-          })}
-          interactive={false}
-          keyboard={false}
-        />
+        {FLAG_MARKERS.map((flag, i) => (
+          <Marker
+            key={`flag-${i}`}
+            position={flag.position}
+            icon={L.divIcon({
+              html: `<div style="
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+                border: 3px solid #dc2626;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                line-height: 1;
+                box-shadow: 0 0 12px rgba(220, 38, 38, 0.5), 0 0 24px rgba(220, 38, 38, 0.2);
+                animation: vietnamFlagPulse 3s ease-in-out infinite;
+              ">🇻🇳</div>`,
+              className: 'vietnam-flag-marker',
+              iconSize: [44, 44],
+              iconAnchor: [22, 22],
+            })}
+            interactive={false}
+            keyboard={false}
+          />
+        ))}
 
         {/* Programmatic map controls */}
         <MapController selectedSlug={selectedSlug} />
         <MapEventHandler onMapClick={handleMapClick} />
 
         {/* Render markers for each visible place */}
-        {visiblePlaces.map((place) => (
+        {safePlaces.map((place) => (
           <PlaceMarker
             key={place.slug}
             place={place}
@@ -665,9 +650,9 @@ export default function VietnamInteractiveMap({
         ))}
       </MapContainer>
 
-      {/* Region legend overlay — light theme */}
+      {/* Region legend overlay */}
       <div className="pointer-events-none absolute bottom-4 left-4 z-[1000]">
-        <div className="pointer-events-auto rounded-xl border border-black/[0.08] bg-white/90 px-3 py-2 shadow-md backdrop-blur-md">
+        <div className="pointer-events-auto rounded-xl border border-slate-200 bg-white/95 px-3 py-2 shadow-md backdrop-blur-md">
           <div className="flex flex-wrap gap-x-3 gap-y-1">
             {Object.entries(REGION_COLORS).map(([region, color]) => {
               const labels: Record<string, string> = {
@@ -683,14 +668,13 @@ export default function VietnamInteractiveMap({
                   <span
                     className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
                     style={{
-                      background: `${color}18`,
+                      background: `${color}12`,
                       border: `1.5px solid ${color}`,
-                      boxShadow: `0 0 4px ${color}33`,
                     }}
                   >
                     {REGION_ICONS[regionKey]}
                   </span>
-                  <span className="text-[11px] text-slate-600">
+                  <span className="text-[11px] text-slate-500">
                     {labels[region]}
                   </span>
                 </div>
@@ -700,11 +684,20 @@ export default function VietnamInteractiveMap({
         </div>
       </div>
 
-      {/* Place count overlay — light theme */}
+      {/* Place count overlay */}
       <div className="pointer-events-none absolute right-4 top-4 z-[1000]">
-        <div className="rounded-lg border border-black/[0.08] bg-white/90 px-2.5 py-1.5 shadow-md backdrop-blur-md">
-          <span className="text-[11px] text-slate-500">
-            {visiblePlaces.length} địa điểm
+        <div className="rounded-lg border border-slate-200 bg-white/95 px-2.5 py-1.5 shadow-sm backdrop-blur-md">
+          <span className="text-[11px] text-slate-400">
+            {safePlaces.length} địa điểm
+          </span>
+        </div>
+      </div>
+
+      {/* Sovereignty notice */}
+      <div className="pointer-events-none absolute bottom-4 right-4 z-[1000]">
+        <div className="rounded-lg border border-red-100 bg-white/95 px-2.5 py-1.5 shadow-sm backdrop-blur-md">
+          <span className="text-[10px] font-medium text-red-500">
+            🇻🇳 Bản đồ sử dụng nhãn từ nguồn nội bộ
           </span>
         </div>
       </div>
