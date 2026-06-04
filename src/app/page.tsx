@@ -598,7 +598,7 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
             <ToolCard
               title="Việt Nam 🇻🇳"
-              description="Khám phá bản đồ Việt Nam tương tác — lịch sử, anh hùng, danh lam, ẩm thực mỗi vùng đất."
+              description="Bản đồ tương tác 47 địa điểm — lịch sử, anh hùng, danh lam, ẩm thực, học nhanh mỗi vùng đất."
               icon={Map}
               onClick={goToVietnam}
             />
@@ -638,8 +638,8 @@ export default function Home() {
                 Việt Nam 🇻🇳
               </h2>
               <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-                Khám phá bản đồ tương tác — từ Hà Nội ngàn năm văn hiến đến Cần Thơ sông nước.
-                Mỗi vùng đất mang một câu chuyện lịch sử, những vị anh hùng, danh lam thắng cảnh và ẩm thực đặc sắc.
+                Khám phá Việt Nam qua bản đồ tương tác — từ Hà Nội ngàn năm văn hiến đến Cần Thơ sông nước,
+                từ Hoàng Sa đến Trường Sa. Lịch sử, anh hùng, danh lam, ẩm thực mỗi vùng đất đang chờ bạn.
               </p>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <FeatureCategory icon={Globe} title="Lịch sử" color="violet" items={['Sự kiện lịch sử nổi bật', 'Dòng thời gian tương tác', 'Câu chuyện mỗi vùng đất']} />
@@ -651,7 +651,7 @@ export default function Home() {
                   onClick={goToVietnam}
                   className="liquid-glass inline-flex cursor-pointer items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
                 >
-                  Khám phá bản đồ <ArrowRight className="ml-2 h-4 w-4" />
+                  Khám phá Việt Nam qua bản đồ <ArrowRight className="ml-2 h-4 w-4" />
                 </button>
               </div>
             </div>
