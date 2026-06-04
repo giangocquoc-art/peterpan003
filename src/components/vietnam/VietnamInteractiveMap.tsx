@@ -5,21 +5,22 @@
  *
  * Features:
  * - CartoDB dark_matter tile layer for premium dark aesthetic
- * - CircleMarker for each place in vietnamAtlas, color-coded by region
+ * - Custom DivIcon markers with emoji icons for each place, color-coded by region
  * - Styled popups with place info and "Khám phá" action button
  * - Hover tooltips showing place names
  * - Auto-fit Vietnam bounds on load, pan/zoom on selection
  * - Region filter support
  * - Responsive container (500px desktop, 350px mobile)
  * - Custom dark-themed popup styling
+ * - Attribution hidden for cleaner map appearance
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import L from 'leaflet'
 import {
   MapContainer,
   TileLayer,
-  CircleMarker,
+  Marker,
   Popup,
   Tooltip,
   useMap,
@@ -32,7 +33,6 @@ import { vietnamAtlas, type RegionType, type VietnamPlace } from '@/data/vietnam
 import 'leaflet/dist/leaflet.css'
 
 // Fix Leaflet default icon issue with webpack/next.js
-// Even though we use CircleMarker (no icons), this prevents runtime errors
 delete (L.Icon.Default.prototype as any)._getIconUrl
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -53,6 +53,15 @@ const REGION_COLORS: Record<RegionType, string> = {
   south: '#10b981',    // Emerald
   highlands: '#8b5cf6', // Violet
   islands: '#ef4444',  // Red
+}
+
+/** Region emoji icons for legend */
+const REGION_ICONS: Record<RegionType, string> = {
+  north: '🏔️',
+  central: '🏯',
+  south: '🛶',
+  highlands: '🌿',
+  islands: '🏝️',
 }
 
 /** Type badge labels in Vietnamese */
@@ -132,10 +141,69 @@ function MapEventHandler({
   return null
 }
 
+// ─── Custom DivIcon Factory ──────────────────────────────────────────────────
+
+/**
+ * createPlaceIcon — creates a custom L.divIcon with an emoji badge
+ * for a given place, adapting size based on selection/hover state.
+ */
+function createPlaceIcon(place: VietnamPlace, isSelected: boolean, isHovered: boolean) {
+  const size = isSelected ? 40 : isHovered ? 36 : 28
+  const regionColor = REGION_COLORS[place.region]
+
+  const html = `
+    <div style="
+      position: relative;
+      width: ${size}px;
+      height: ${size}px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    ">
+      ${isSelected || isHovered ? `
+        <div style="
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          background: ${regionColor}33;
+          animation: vietnamPulse 2s ease-in-out infinite;
+        "></div>
+      ` : ''}
+      <div style="
+        position: relative;
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: 50%;
+        background: ${regionColor}22;
+        border: 2px solid ${regionColor};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: ${isSelected ? 20 : isHovered ? 18 : 14}px;
+        line-height: 1;
+        box-shadow: 0 0 ${isSelected ? 16 : 8}px ${regionColor}66;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      ">
+        ${place.icon}
+      </div>
+    </div>
+  `
+
+  return L.divIcon({
+    html,
+    className: 'vietnam-place-marker',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2)],
+  })
+}
+
 // ─── Place Marker Component ──────────────────────────────────────────────────
 
 /**
- * PlaceMarker — renders a single CircleMarker for a VietnamPlace
+ * PlaceMarker — renders a custom DivIcon Marker for a VietnamPlace
  * with hover effects, tooltip, and styled popup.
  */
 function PlaceMarker({
@@ -155,22 +223,16 @@ function PlaceMarker({
 }) {
   const regionColor = REGION_COLORS[place.region]
 
-  // Marker size: larger on hover or when selected
-  const radius = isSelected ? 12 : isHovered ? 10 : 6
-  const fillOpacity = isHovered || isSelected ? 1.0 : 0.7
+  // Memoize icon creation to avoid re-creating on every render
+  const icon = useMemo(
+    () => createPlaceIcon(place, isSelected, isHovered),
+    [place, isSelected, isHovered]
+  )
 
   return (
-    <CircleMarker
-      center={place.coordinates}
-      radius={radius}
-      pathOptions={{
-        color: regionColor,
-        fillColor: regionColor,
-        fillOpacity,
-        weight: 1,
-        opacity: 0.5,
-        className: 'transition-all duration-200',
-      }}
+    <Marker
+      position={place.coordinates}
+      icon={icon}
       eventHandlers={{
         mouseover: onHover,
         mouseout: onHoverEnd,
@@ -183,7 +245,7 @@ function PlaceMarker({
         className="vietnam-map-tooltip"
       >
         <span style={{ fontWeight: 600, fontSize: '13px' }}>
-          {place.icon} {place.name}
+          {place.name}
         </span>
       </Tooltip>
 
@@ -241,7 +303,7 @@ function PlaceMarker({
           </button>
         </div>
       </Popup>
-    </CircleMarker>
+    </Marker>
   )
 }
 
@@ -321,6 +383,18 @@ function useLeafletDarkStyles() {
     const style = document.createElement('style')
     style.id = styleId
     style.textContent = `
+      /* ── Custom marker base ── */
+      .vietnam-place-marker {
+        background: transparent !important;
+        border: none !important;
+      }
+
+      /* ── Pulse animation ── */
+      @keyframes vietnamPulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.3); opacity: 0; }
+      }
+
       /* ── Popup overrides ── */
       .vietnam-map-popup .leaflet-popup-content-wrapper {
         background: #1e1e2e;
@@ -376,18 +450,6 @@ function useLeafletDarkStyles() {
         background-color: #2a2a3e !important;
         color: #e2e8f0 !important;
       }
-      .leaflet-control-attribution {
-        background: rgba(15, 15, 25, 0.7) !important;
-        color: #475569 !important;
-        font-size: 10px !important;
-        border-radius: 4px 0 0 0;
-      }
-      .leaflet-control-attribution a {
-        color: #64748b !important;
-      }
-      .leaflet-control-attribution a:hover {
-        color: #94a3b8 !important;
-      }
     `
     document.head.appendChild(style)
 
@@ -428,11 +490,10 @@ export default function VietnamInteractiveMap({
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"
         zoomControl={true}
-        attributionControl={true}
+        attributionControl={false}
       >
         {/* CartoDB dark_matter tile layer */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
@@ -466,12 +527,19 @@ export default function VietnamInteractiveMap({
                 highlands: 'Tây Nguyên',
                 islands: 'Quần đảo',
               }
+              const regionKey = region as RegionType
               return (
                 <div key={region} className="flex items-center gap-1.5">
                   <span
-                    className="inline-block h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: color }}
-                  />
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
+                    style={{
+                      background: `${color}22`,
+                      border: `1.5px solid ${color}`,
+                      boxShadow: `0 0 4px ${color}44`,
+                    }}
+                  >
+                    {REGION_ICONS[regionKey]}
+                  </span>
                   <span className="text-[11px] text-white/50">
                     {labels[region]}
                   </span>

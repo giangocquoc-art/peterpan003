@@ -92,3 +92,46 @@ Work Log:
 Stage Summary:
 - Homepage Vietnam section updated with better CTA and description
 - Dark premium theme applied to all Leaflet elements
+
+---
+Task ID: 9
+Agent: main
+Task: Improve Vietnam Interactive Map with 4 specific changes
+
+Work Log:
+1. **Hidden Leaflet/OSM/CARTO attribution**: Set `attributionControl={false}` on `<MapContainer>` and removed the `attribution` prop from `<TileLayer>`. Also removed the attribution CSS overrides from `useLeafletDarkStyles` since they're no longer needed.
+
+2. **Fixed Hoàng Sa and Trường Sa names**: Updated `vietnamAtlas.ts` — changed name from "Hoàng Sa" → "Quần đảo Hoàng Sa" and "Trường Sa" → "Quần đảo Trường Sa" for proper Vietnamese naming convention.
+
+3. **Added 4 new Vietnamese island entries**: Added to `islandsPlaces` array in `vietnamAtlas.ts`:
+   - Đảo Phú Quốc (id: 48, 🏝️, Kiên Giang area)
+   - Đảo Cát Bà (id: 49, 🌴, Hải Phòng area)
+   - Đảo Lý Sơn (id: 50, 🧄, Quảng Ngãi area)
+   - Đảo Côn Đảo (id: 51, 🐢, Bà Rịa-Vũng Tàu area)
+   All use `type: 'archipelago'` to match existing data model.
+
+4. **Replaced CircleMarker with custom DivIcon markers**: 
+   - Replaced `<CircleMarker>` with `<Marker>` using `L.divIcon`
+   - Each marker shows the place's emoji icon in a circular badge with:
+     - Region-colored border (2px solid)
+     - Region-colored glow effect (box-shadow)
+     - Semi-transparent region-colored background
+   - Selected/hovered markers are larger (40px/36px vs 28px default)
+   - Pulse animation on selected/hovered markers using CSS @keyframes
+   - Added `.vietnam-place-marker` CSS class with `background: transparent; border: none;`
+   - Updated legend from colored dots to mini emoji icon badges
+   - Memoized icon creation with `useMemo`
+
+5. **Updated PlaceCard in VietnamMap.tsx**: Changed the top-left from a small colored dot + tiny emoji to a prominent 32px emoji badge with:
+   - Region-colored circular border
+   - Region-colored glow shadow
+   - Semi-transparent region-colored background
+   - The emoji is now the primary visual element
+
+Stage Summary:
+- Map is cleaner (no attribution text)
+- Island names are properly prefixed with "Quần đảo"
+- 4 new islands added (51 total places now)
+- Map markers are now emoji badges instead of plain colored dots
+- PlaceCards show emoji icons more prominently
+- All changes pass lint with 0 errors

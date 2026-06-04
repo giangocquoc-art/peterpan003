@@ -307,14 +307,17 @@ function PlaceCard({
       onClick={onClick}
       className="group rounded-xl border border-white/5 bg-white/[0.02] p-4 text-left transition-all duration-200 hover:scale-[1.02] hover:border-white/10 hover:bg-white/[0.05]"
     >
-      {/* Top: Color dot + icon */}
+      {/* Top: Emoji icon badge + type label */}
       <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: color }}
-          />
-          <span className="text-xs text-white/40">{place.icon}</span>
+        <div
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-base"
+          style={{
+            background: `${color}22`,
+            border: `2px solid ${color}`,
+            boxShadow: `0 0 8px ${color}33`,
+          }}
+        >
+          {place.icon}
         </div>
         <span className="rounded-full border border-white/5 bg-white/[0.03] px-2 py-0.5 text-[10px] text-white/30">
           {typeLabels[place.type] || place.type}
