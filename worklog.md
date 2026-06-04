@@ -135,3 +135,47 @@ Stage Summary:
 - Map markers are now emoji badges instead of plain colored dots
 - PlaceCards show emoji icons more prominently
 - All changes pass lint with 0 errors
+
+---
+Task ID: 10
+Agent: main
+Task: Rebuild Study Tool as client-side, no-AI, open-source document-to-lesson converter
+
+Work Log:
+- Installed pdfjs-dist@6.0.227 for client-side PDF text extraction
+- Created /home/z/my-project/src/lib/study-engine.ts (~350 lines) — open-source text analysis engine:
+  - Vietnamese stop words list
+  - TF-IDF-inspired keyword extraction
+  - Sentence scoring (TextRank-like algorithm)
+  - Definition pattern matching (4 Vietnamese patterns: "X là Y", "X - Y", "X được gọi là Y", numbered lists)
+  - Capitalized term extraction for proper nouns
+  - 5 study mode generators: Flashcard, Fill-in-the-blank, Quiz, Summary, Match
+  - PDF text extraction via pdfjs-dist (client-side)
+  - TXT/MD file reading via FileReader API
+- Rewrote /home/z/my-project/src/components/study/StudyTool.tsx (~600 lines):
+  - Full client-side processing, NO API calls, NO AI
+  - Input methods: Paste text, Upload file (PDF/TXT/MD with drag-and-drop)
+  - Word/sentence counter in real-time
+  - Privacy notice: "Không dùng AI, Không gửi dữ liệu lên server, Chạy 100% trên trình duyệt"
+  - Config step: difficulty (easy/medium/hard), question count slider, 5 study modes
+  - Flashcard mode: flip cards, "Đã nhớ" tracking, progress bar
+  - Fill-blank mode: type answers, check, hints, reveal answer
+  - Quiz mode: ABCD options, scoring system, retry
+  - Summary mode: numbered key points with details
+  - Match mode: reveal pairs, shuffle
+  - Emerald green accent color scheme (vs. previous white/generic)
+- Deprecated /home/z/my-project/src/app/api/study-tool/route.ts (returns 410 Gone)
+- Updated /home/z/my-project/src/app/page.tsx:
+  - Renamed "Study Tool" → "Học tập 📚" across all UI
+  - Updated descriptions to emphasize "Không AI, thuật toán mã nguồn mở, chạy 100% trên trình duyệt"
+  - Updated feature categories: "5 loại bài học", "Không AI" (replacing "3 mức độ"), "Đa nguồn" (PDF/TXT/drag-drop)
+- All changes pass lint with 0 errors
+- Verified with Agent Browser: Homepage, Study Tool page, text input, config, generation, flashcard flip, quiz answering, scoring all work correctly
+
+Stage Summary:
+- Study Tool fully rebuilt as client-side, no-AI application
+- Open-source algorithms replace AI for text analysis
+- PDF support via pdfjs-dist (client-side)
+- No data sent to any server — everything runs in browser
+- All 5 study modes functional: Flashcard, Fill-blank, Quiz, Summary, Match
+- Branded as "Học tập 📚" with emerald green theme

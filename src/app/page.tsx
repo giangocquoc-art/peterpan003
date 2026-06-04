@@ -503,7 +503,7 @@ export default function Home() {
             </button>
             <button onClick={() => setView('study')} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
               <GraduationCap className="h-3.5 w-3.5" />
-              Study Tool
+              Học tập
             </button>
             <button onClick={() => setView('chat')} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
               <MessageCircle className="h-3.5 w-3.5" />
@@ -535,7 +535,7 @@ export default function Home() {
                 Việt Nam 🇻🇳
               </button>
               <button onClick={() => { setView('study'); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
-                <GraduationCap className="h-5 w-5" /> Study Tool
+                <GraduationCap className="h-5 w-5" /> Học tập 📚
               </button>
               <button onClick={() => { setView('chat'); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
                 <MessageCircle className="h-5 w-5" /> Chat AI
@@ -573,7 +573,7 @@ export default function Home() {
               onClick={() => setView('study')}
               className="liquid-glass cursor-pointer rounded-full px-6 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
             >
-              Study Tool 📚
+              Học tập 📚
             </button>
             <button
               onClick={() => setView('chat')}
@@ -603,8 +603,8 @@ export default function Home() {
               onClick={goToVietnam}
             />
             <ToolCard
-              title="Study Tool"
-              description="Biến PDF, tài liệu thành bài học: flashcard, trắc nghiệm, điền chỗ trống, tóm tắt, nối cặp."
+              title="Học tập 📚"
+              description="Biến PDF, tài liệu thành bài học — không AI, chạy 100% trên trình duyệt, không lưu dữ liệu."
               icon={BookOpen}
               onClick={() => setView('study')}
             />
@@ -671,22 +671,22 @@ export default function Home() {
             <div className="flex-1 space-y-8">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
                 <GraduationCap className="h-3.5 w-3.5" />
-                Study Tool
+                Học tập
               </div>
               <h2
                 className="text-5xl tracking-tight sm:text-6xl"
                 style={{ fontFamily: 'var(--font-display)' }}
               >
-                Study Tool 📚
+                Học tập 📚
               </h2>
               <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-                Biến mọi tài liệu thành bài học tương tác. Chọn mức độ khó, số lượng câu hỏi
-                và 5 loại bài học khác nhau — AI sẽ tự động tạo cho bạn.
+                Biến mọi tài liệu thành bài học tương tác. Không dùng AI, thuật toán mã nguồn mở
+                phân tích và tạo 5 loại bài học — chạy hoàn toàn trên trình duyệt.
               </p>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <FeatureCategory icon={Layers} title="5 loại bài học" color="sky" items={['Lật thẻ Flashcard', 'Điền chỗ trống', 'Trắc nghiệm A-B-C-D']} />
-                <FeatureCategory icon={Zap} title="3 mức độ" color="amber" items={['Dễ — Cơ bản', 'Trung bình — Nền tảng', 'Khó — Nâng cao']} />
-                <FeatureCategory icon={PenLine} title="Đa nguồn" color="rose" items={['File PDF, Word', 'Hình ảnh', 'Text trực tiếp']} />
+                <FeatureCategory icon={Zap} title="Không AI" color="emerald" items={['Thuật toán mã nguồn mở', 'Chạy trên trình duyệt', 'Không gửi dữ liệu']} />
+                <FeatureCategory icon={PenLine} title="Đa nguồn" color="rose" items={['File PDF, TXT', 'Dán text trực tiếp', 'Kéo thả file']} />
               </div>
               <div className="pt-2">
                 <button
