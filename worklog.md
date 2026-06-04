@@ -1,78 +1,29 @@
 ---
 Task ID: 1
 Agent: Main Agent
-Task: Add user image elegantly to website and change "Work with me" to "P-English?" with auto-scroll
+Task: Build comprehensive P-ShareHub v2.0 with Vietnam Map, Study Tool, Chat Habibi, P-logo sync, and feedback auto-copy
 
 Work Log:
-- Explored project structure and read uploaded zip (velorah) containing P-ShareHub website source
-- Copied user's image (1111111.jpg) to /public/profile.jpg
-- Converted the Vite/React P-ShareHub site to Next.js page.tsx, keeping original design intact
-- Added user's photo in the About section as a circular avatar with subtle glow effect (not full-screen background)
-- Changed "Work with me" button to "P-English?" with smooth scroll to #p-english section
-- Updated globals.css with: dark theme, liquid-glass styles, star-field animation, fade-rise animations
-- Fixed CSS @import ordering issue by using next/font/google for Instrument Serif and Inter fonts
-- Updated layout.tsx with P-ShareHub metadata and Vietnamese lang
-- Verified with Agent Browser + VLM: hero section, scroll functionality, and About section with profile photo all working correctly
+- Analyzed all uploaded reference images using VLM (Chat Habibi UI, Vietnam map, P-logo)
+- Created project structure with components/chat, components/vietnam, components/study
+- Built Chat Habibi component with Gemini-style UI: left sidebar with 4 modes (Chat, Build Web, Học tập, Sáng tạo), AI thinking progress display, suggestion chips, streaming SSE support, copy message, mode-constrained AI prompts
+- Built Vietnam Interactive Map with 12 clickable regions (SVG-based), each with detail pages showing History, Heroes, Landmarks, Foods tabs
+- Built Study Tool with 3-step flow: Input → Configure (difficulty, question count, study modes) → Generate → Result with 5 study modes (Flashcard, Fill Blank, Quiz, Summary, Match)
+- Created /api/chat-habibi route with mode-based system prompts, streaming SSE + non-streaming fallback
+- Created /api/study-tool route with AI-powered study material generation
+- Updated main page.tsx with client-side routing between Home, Vietnam, Study, Chat views
+- Added P-logo to navbar, sidebar, and all relevant locations
+- Added feedback auto-copy email (giangocquoc@gmail.com) to footer
+- Added "From Vietnam to the world 🇻🇳" clickable button that navigates to Vietnam map
+- Added mobile menu with hamburger navigation
+- Fixed streaming API: handled SDK's char-code indexed chunk format with proper parsing and non-streaming JSON fallback
+- Added rate limit error handling with Vietnamese messages
 
 Stage Summary:
-- Website preserves original P-ShareHub design with starfield background, navigation, hero, tools, products, about, and footer
-- User's photo displayed elegantly as a circular avatar with glow in the About section
-- "P-English?" button scrolls smoothly to the P-English product section
-- All CSS animations (fade-rise, star-drift) working correctly
-- No dev server errors
-
----
-Task ID: 2
-Agent: Main Agent
-Task: Multiple UI improvements - text change, progress bars, screenshots, font, scroll, premium galaxy UI
-
-Work Log:
-- Changed About section heading from "Công cụ hữu ích không nên luôn bị khoá sau phí." to "Tôi nghèo, bạn cũng thế."
-- Added development progress bars: P-API (70% - "Đang phát triển"), Vocodo (30% - "Giai đoạn ý tưởng") with amber gradient progress indicators
-- P-English and P-DF remain without progress bars (they are live products)
-- Visited penglish.vercel.app with agent-browser, took full screenshot, saved to /public/penglish-preview.png
-- P-DF site (sejda.com) blocked by Cloudflare, created premium mock PDF editor UI instead
-- Replaced P-English placeholder with real screenshot, P-DF with realistic mock UI
-- Changed font from Inter to Be Vietnam Pro (specifically designed for Vietnamese, with vietnamese subset in next/font/google)
-- Made "Tìm hiểu thêm về P-Share" button scroll to "Kết nối với chúng tôi" section
-- Replaced CSS starfield with Canvas-based Galaxy background featuring:
-  - Twinkling stars with glow effects for larger stars
-  - Drifting nebulae (purple/blue/pink gradients)
-  - Shooting stars with gradient trails
-  - Smooth drift animation
-- Enhanced liquid-glass with stronger blur (12px), saturation, and deeper shadows
-- Added liquid-glass-nav for sticky frosted-glass navigation
-- Added galaxy-card class with violet glow and hover lift effect
-- Enhanced profile photo glow with violet/blue gradient layers
-- Added purple selection color
-- Verified all interactions with Agent Browser + VLM
-
-Stage Summary:
-- All 6 tasks completed and browser-verified
-- Premium galaxy canvas background with shooting stars, nebulae, twinkling
-- Be Vietnam Pro font for crisp Vietnamese rendering
-- P-English product card now shows real screenshot
-- P-API 70% and Vocodo 30% progress bars with amber gradient
-- Both scroll buttons working (P-English? → P-English section, Tìm hiểu thêm → Contact section)
-
----
-Task ID: 3
-Agent: Main Agent
-Task: Fix quote, add sejda PDF screenshot, add status bar
-
-Work Log:
-- Fixed quote: "tự bước đi ra khỏi" → "tự bước ra khỏi" (removed "đi")
-- Attempted to screenshot sejda.com/pdf-editor via agent-browser but blocked by Cloudflare
-- Used web-reader (z-ai function page_reader) to extract sejda HTML content
-- Created local HTML from sejda content but screenshot was incomplete (bare navigation only)
-- Used Image Generation (z-ai image) to generate professional PDF editor screenshot
-- Replaced mock P-DF UI with generated pdf-preview.png image
-- Added status bar at top of website with: version info (P-ShareHub v1.0), green pulsing dot, "All systems operational", product counts
-- Added CSS for status bar (dark blurred background, mono font, pulse animation for green dot)
-- Verified all changes with Agent Browser + VLM
-
-Stage Summary:
-- Quote fixed: "tự bước ra khỏi bóng tối"
-- P-DF section now shows professional PDF editor preview image
-- Status bar at top: version, green dot status, product counts
-- All verified working correctly
+- P-ShareHub v2.0 fully functional with 4 main views: Home, Vietnam Map, Study Tool, Chat Habibi
+- Chat Habibi has 4 AI modes with constrained system prompts per mode
+- Vietnam Map has 12 regions with interactive SVG map and detail pages
+- Study Tool supports 5 study modes with 3 difficulty levels
+- P-logo synced across navbar, sidebar, chat interface
+- Feedback auto-copy works in footer
+- API rate limiting handled gracefully with Vietnamese error messages

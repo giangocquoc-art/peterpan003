@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import {
   ArrowRight,
   BookOpen,
@@ -22,9 +22,22 @@ import {
   Route,
   Target,
   Mail,
+  Map,
+  MessageCircle,
+  GraduationCap,
+  Copy,
+  Menu,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import dynamic from 'next/dynamic'
+
+// Lazy load heavy components
+const ChatHabibi = dynamic(() => import('@/components/chat/ChatHabibi'), { ssr: false })
+const VietnamMap = dynamic(() => import('@/components/vietnam/VietnamMap'), { ssr: false })
+const StudyTool = dynamic(() => import('@/components/study/StudyTool'), { ssr: false })
+
+type View = 'home' | 'vietnam' | 'study' | 'chat'
 
 /* ─── Canvas Galaxy Background ─── */
 function GalaxyBackground() {
@@ -33,7 +46,6 @@ function GalaxyBackground() {
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
@@ -41,36 +53,9 @@ function GalaxyBackground() {
     let width = 0
     let height = 0
 
-    interface Star {
-      x: number
-      y: number
-      size: number
-      speed: number
-      opacity: number
-      twinkleSpeed: number
-      twinklePhase: number
-    }
-
-    interface ShootingStar {
-      x: number
-      y: number
-      len: number
-      speed: number
-      opacity: number
-      angle: number
-      life: number
-      maxLife: number
-    }
-
-    interface Nebula {
-      x: number
-      y: number
-      radius: number
-      color: string
-      opacity: number
-      drift: number
-      phase: number
-    }
+    interface Star { x: number; y: number; size: number; speed: number; opacity: number; twinkleSpeed: number; twinklePhase: number }
+    interface ShootingStar { x: number; y: number; len: number; speed: number; opacity: number; angle: number; life: number; maxLife: number }
+    interface Nebula { x: number; y: number; radius: number; color: string; opacity: number; drift: number; phase: number }
 
     let stars: Star[] = []
     let shootingStars: ShootingStar[] = []
@@ -99,33 +84,9 @@ function GalaxyBackground() {
 
     function initNebulae() {
       nebulae = [
-        {
-          x: width * 0.2,
-          y: height * 0.3,
-          radius: 300,
-          color: 'rgba(100, 50, 180, 0.015)',
-          opacity: 1,
-          drift: 0.0003,
-          phase: 0,
-        },
-        {
-          x: width * 0.7,
-          y: height * 0.6,
-          radius: 250,
-          color: 'rgba(30, 80, 160, 0.012)',
-          opacity: 1,
-          drift: 0.0002,
-          phase: 2,
-        },
-        {
-          x: width * 0.5,
-          y: height * 0.8,
-          radius: 350,
-          color: 'rgba(60, 20, 120, 0.01)',
-          opacity: 1,
-          drift: 0.00025,
-          phase: 4,
-        },
+        { x: width * 0.2, y: height * 0.3, radius: 300, color: 'rgba(100, 50, 180, 0.015)', opacity: 1, drift: 0.0003, phase: 0 },
+        { x: width * 0.7, y: height * 0.6, radius: 250, color: 'rgba(30, 80, 160, 0.012)', opacity: 1, drift: 0.0002, phase: 2 },
+        { x: width * 0.5, y: height * 0.8, radius: 350, color: 'rgba(60, 20, 120, 0.01)', opacity: 1, drift: 0.00025, phase: 4 },
       ]
     }
 
@@ -150,7 +111,6 @@ function GalaxyBackground() {
       ctx.clearRect(0, 0, width, height)
       time++
 
-      // Draw nebulae
       for (const n of nebulae) {
         n.phase += n.drift
         const nx = n.x + Math.sin(n.phase) * 50
@@ -162,7 +122,6 @@ function GalaxyBackground() {
         ctx.fillRect(nx - n.radius, ny - n.radius, n.radius * 2, n.radius * 2)
       }
 
-      // Draw stars with twinkle
       for (const star of stars) {
         star.twinklePhase += star.twinkleSpeed
         const twinkle = 0.5 + 0.5 * Math.sin(star.twinklePhase)
@@ -173,7 +132,6 @@ function GalaxyBackground() {
         ctx.fillStyle = `rgba(255, 255, 255, ${currentOpacity})`
         ctx.fill()
 
-        // Glow for larger stars
         if (star.size > 1.2) {
           ctx.beginPath()
           ctx.arc(star.x, star.y, star.size * 3, 0, Math.PI * 2)
@@ -181,7 +139,6 @@ function GalaxyBackground() {
           ctx.fill()
         }
 
-        // Slow drift upward
         star.y -= star.speed
         if (star.y < -5) {
           star.y = height + 5
@@ -189,7 +146,6 @@ function GalaxyBackground() {
         }
       }
 
-      // Shooting stars
       if (Math.random() < 0.003) spawnShootingStar()
 
       for (let i = shootingStars.length - 1; i >= 0; i--) {
@@ -197,14 +153,11 @@ function GalaxyBackground() {
         s.life++
         s.x += Math.cos(s.angle) * s.speed
         s.y += Math.sin(s.angle) * s.speed
-
         const lifeRatio = s.life / s.maxLife
         s.opacity = 1 - lifeRatio
 
-        // Draw shooting star trail
         const tailX = s.x - Math.cos(s.angle) * s.len
         const tailY = s.y - Math.sin(s.angle) * s.len
-
         const gradient = ctx.createLinearGradient(tailX, tailY, s.x, s.y)
         gradient.addColorStop(0, 'transparent')
         gradient.addColorStop(0.6, `rgba(180, 200, 255, ${s.opacity * 0.3})`)
@@ -217,7 +170,6 @@ function GalaxyBackground() {
         ctx.lineWidth = 1.5
         ctx.stroke()
 
-        // Head glow
         ctx.beginPath()
         ctx.arc(s.x, s.y, 2, 0, Math.PI * 2)
         ctx.fillStyle = `rgba(255, 255, 255, ${s.opacity})`
@@ -233,7 +185,6 @@ function GalaxyBackground() {
 
     resize()
     animate()
-
     window.addEventListener('resize', resize)
 
     return () => {
@@ -258,22 +209,29 @@ function ToolCard({
   icon: Icon,
   progress,
   devStatus,
+  onClick,
 }: {
   title: string
   description: string
-  url: string
+  url?: string
   icon: React.ElementType
   progress?: number
   devStatus?: string
+  onClick?: () => void
 }) {
   const isLive = !progress && progress !== 0
 
+  const Wrapper = onClick ? 'button' : url ? 'a' : 'div'
+  const wrapperProps = onClick
+    ? { onClick }
+    : url
+    ? { href: url, target: '_blank', rel: 'noopener noreferrer' }
+    : {}
+
   return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="liquid-glass group flex flex-col rounded-2xl p-8 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+    <Wrapper
+      {...wrapperProps}
+      className="liquid-glass group flex flex-col rounded-2xl p-8 transition-all duration-300 hover:scale-[1.02] cursor-pointer text-left"
     >
       <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-white/5">
         <Icon className="h-6 w-6 text-white" />
@@ -288,7 +246,6 @@ function ToolCard({
         {description}
       </p>
 
-      {/* Progress bar for in-dev features */}
       {progress !== undefined && (
         <div className="mt-auto space-y-2">
           <div className="flex items-center justify-between text-xs">
@@ -307,66 +264,12 @@ function ToolCard({
         </div>
       )}
 
-      {isLive && url && url !== '#' && (
+      {isLive && (url || onClick) && (
         <div className="mt-auto flex items-center text-sm font-medium text-white/70 transition-colors group-hover:text-white">
           Trải nghiệm <ArrowRight className="ml-2 h-4 w-4" />
         </div>
       )}
-
-      {isLive && url === '#' && (
-        <div className="mt-auto flex items-center gap-1.5 text-xs text-emerald-400/70">
-          <Sparkles className="h-3 w-3" />
-          Sẵn sàng
-        </div>
-      )}
-    </a>
-  )
-}
-
-/* ─── Featured Tools ─── */
-function FeaturedTools() {
-  return (
-    <section className="mx-auto w-full max-w-7xl px-8 py-24 sm:py-32" id="tools">
-      <div className="mb-16">
-        <h2
-          className="mb-4 text-4xl tracking-tight sm:text-5xl"
-          style={{ fontFamily: 'var(--font-display)' }}
-        >
-          Công cụ nổi bật
-        </h2>
-        <div className="h-px w-24 bg-white/20" />
-      </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <ToolCard
-          title="P-English"
-          description="Học tiếng Anh qua flashcards, shadowing, lộ trình cá nhân hóa — miễn phí, không cần đăng ký."
-          url="https://penglish.vercel.app"
-          icon={BookOpen}
-        />
-        <ToolCard
-          title="P-DF"
-          description="Sửa PDF ngay trên trình duyệt — chỉnh chữ, gộp, tách, xoay. Xử lý 100% local, bảo mật tuyệt đối."
-          url="https://www.sejda.com/pdf-editor"
-          icon={FileText}
-        />
-        <ToolCard
-          title="P-API"
-          description="Lớp API tiện ích cho các công cụ trong hệ sinh thái P-ShareHub."
-          url="#"
-          icon={Code}
-          progress={70}
-          devStatus="Đang phát triển"
-        />
-        <ToolCard
-          title="Vocodo"
-          description="Ý tưởng chuyển đổi ngôn ngữ ký hiệu thành giọng nói bằng AI trong thời gian thực."
-          url="#"
-          icon={Mic}
-          progress={30}
-          devStatus="Giai đoạn ý tưởng"
-        />
-      </div>
-    </section>
+    </Wrapper>
   )
 }
 
@@ -383,31 +286,11 @@ function FeatureCategory({
   items: string[]
 }) {
   const colorMap = {
-    violet: {
-      bg: 'bg-violet-500/10',
-      icon: 'text-violet-400',
-      check: 'text-violet-400/60',
-    },
-    sky: {
-      bg: 'bg-sky-500/10',
-      icon: 'text-sky-400',
-      check: 'text-sky-400/60',
-    },
-    emerald: {
-      bg: 'bg-emerald-500/10',
-      icon: 'text-emerald-400',
-      check: 'text-emerald-400/60',
-    },
-    amber: {
-      bg: 'bg-amber-500/10',
-      icon: 'text-amber-400',
-      check: 'text-amber-400/60',
-    },
-    rose: {
-      bg: 'bg-rose-500/10',
-      icon: 'text-rose-400',
-      check: 'text-rose-400/60',
-    },
+    violet: { bg: 'bg-violet-500/10', icon: 'text-violet-400', check: 'text-violet-400/60' },
+    sky: { bg: 'bg-sky-500/10', icon: 'text-sky-400', check: 'text-sky-400/60' },
+    emerald: { bg: 'bg-emerald-500/10', icon: 'text-emerald-400', check: 'text-emerald-400/60' },
+    amber: { bg: 'bg-amber-500/10', icon: 'text-amber-400', check: 'text-amber-400/60' },
+    rose: { bg: 'bg-rose-500/10', icon: 'text-rose-400', check: 'text-rose-400/60' },
   }
   const c = colorMap[color]
 
@@ -431,196 +314,29 @@ function FeatureCategory({
   )
 }
 
-/* ─── Product Highlights ─── */
-function ProductHighlights() {
-  return (
-    <section
-      className="mx-auto w-full max-w-7xl px-8 py-24 sm:py-32"
-      id="products"
-    >
-      {/* P-English */}
-      <div
-        className="mb-32 flex flex-col items-center gap-16 lg:flex-row"
-        id="p-english"
-      >
-        <div className="flex-1 space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
-            <BookOpen className="h-3.5 w-3.5" />
-            English Learning
-          </div>
-          <h2
-            className="text-5xl tracking-tight sm:text-6xl"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            P-English
-          </h2>
-          <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Học tiếng Anh miễn phí — thiết kế riêng cho người Việt.
-            Không cần đăng ký, không phí ẩn.
-          </p>
-
-          {/* Feature Categories */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <FeatureCategory
-              icon={BookOpen}
-              title="Từ vựng"
-              color="violet"
-              items={['Flashcard thông minh', 'Lặp lại ngắt quãng (SRS)', 'Học qua ngữ cảnh']}
-            />
-            <FeatureCategory
-              icon={Headphones}
-              title="Luyện nghe & nói"
-              color="sky"
-              items={['Shadowing luyện phát âm', 'Nghe chép chính tả', 'Ghi âm & so sánh']}
-            />
-            <FeatureCategory
-              icon={Route}
-              title="Lộ trình"
-              color="amber"
-              items={['Cá nhân hóa theo trình độ', 'Theo dõi tiến độ', 'Mục tiêu hàng ngày']}
-            />
-          </div>
-
-          {/* Quick info pills */}
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
-              <Zap className="h-3 w-3 text-amber-400/60" />
-              Miễn phí hoàn toàn
-            </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
-              <Target className="h-3 w-3 text-rose-400/60" />
-              Dành cho người Việt
-            </div>
-          </div>
-
-          <div className="pt-2">
-            <a
-              href="https://penglish.vercel.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="liquid-glass inline-flex items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
-            >
-              Mở P-English <ExternalLink className="ml-2 h-4 w-4" />
-            </a>
-          </div>
-        </div>
-        <div className="relative w-full flex-1">
-          <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 p-2">
-            <img
-              src="/penglish-preview.png"
-              alt="P-English Preview"
-              className="h-full w-full rounded-xl object-cover object-top"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* P-DF */}
-      <div
-        className="flex flex-col items-center gap-16 lg:flex-row-reverse"
-        id="p-df"
-      >
-        <div className="flex-1 space-y-8">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
-            <FileText className="h-3.5 w-3.5" />
-            PDF Editor
-          </div>
-          <h2
-            className="text-5xl tracking-tight sm:text-6xl"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            P-DF
-          </h2>
-          <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
-            Sửa PDF ngay trên trình duyệt — nhanh, gọn, bảo mật.
-            Không cần cài đặt, không cần tải phần mềm.
-          </p>
-
-          {/* Feature Categories */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <FeatureCategory
-              icon={PenLine}
-              title="Chỉnh sửa"
-              color="violet"
-              items={['Thêm & sửa chữ', 'Điền form, ký tên', 'Highlight & ghi chú']}
-            />
-            <FeatureCategory
-              icon={Layers}
-              title="Tổ chức"
-              color="sky"
-              items={['Gộp & tách file', 'Xoay & sắp xếp trang', 'Nén & tối ưu dung lượng']}
-            />
-            <FeatureCategory
-              icon={ShieldCheck}
-              title="Bảo mật"
-              color="emerald"
-              items={['Xử lý 100% local', 'File không rời khỏi máy', 'Không upload server']}
-            />
-          </div>
-
-          {/* Quick info pills */}
-          <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
-              <Zap className="h-3 w-3 text-amber-400/60" />
-              Không cần cài đặt
-            </div>
-            <div className="flex items-center gap-1.5 rounded-full border border-white/8 bg-white/[0.03] px-3 py-1.5 text-xs text-white/50">
-              <Globe className="h-3 w-3 text-sky-400/60" />
-              Chạy trên mọi trình duyệt
-            </div>
-          </div>
-
-          <div className="pt-2">
-            <a
-              href="https://www.sejda.com/pdf-editor"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="liquid-glass inline-flex items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
-            >
-              Mở P-DF <ExternalLink className="ml-2 h-4 w-4" />
-            </a>
-          </div>
-        </div>
-        <div className="relative w-full flex-1">
-          <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 p-2">
-            <img
-              src="/pdf-preview.png"
-              alt="P-DF Preview"
-              className="h-full w-full rounded-xl object-cover object-top"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 /* ─── About Section ─── */
-function AboutSection() {
+function AboutSection({ onVietnamClick }: { onVietnamClick: () => void }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText('giangocquoc@gmail.com')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
-    <section
-      className="w-full border-y border-white/10 bg-white/[0.02]"
-      id="about"
-    >
+    <section className="w-full border-y border-white/10 bg-white/[0.02]" id="about">
       <div className="mx-auto w-full max-w-5xl px-8 py-32">
         <div className="flex flex-col items-center gap-12 lg:flex-row lg:gap-16">
-          {/* Profile Photo - Elegant & Subtle */}
           <div className="relative flex-shrink-0">
-            {/* Glow effect behind avatar */}
             <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-violet-500/10 via-white/5 to-transparent blur-2xl" />
             <div className="absolute -inset-2 rounded-full bg-gradient-to-tr from-blue-500/5 to-transparent blur-xl" />
             <div className="relative h-44 w-44 overflow-hidden rounded-full border border-white/15 shadow-[0_0_60px_rgba(139,92,246,0.08)] sm:h-56 sm:w-56">
-              <img
-                src="/profile.jpg"
-                alt="P-ShareHub Creator"
-                className="h-full w-full object-cover"
-              />
-              {/* Subtle gradient overlay at bottom */}
+              <img src="/profile.jpg" alt="P-ShareHub Creator" className="h-full w-full object-cover" />
               <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 to-transparent" />
             </div>
           </div>
 
-          {/* Text Content */}
           <div className="text-balance text-center lg:text-left">
             <h2
               className="mb-6 text-4xl leading-tight tracking-normal sm:text-5xl"
@@ -634,9 +350,12 @@ function AboutSection() {
               sinh viên, người học và người sáng tạo có thể tiếp cận công cụ học
               tập và xử lý tài liệu dễ hơn.
             </p>
-            <div className="inline-block rounded-full border border-white/10 bg-white/5 px-6 py-2 text-sm uppercase tracking-widest text-white/60">
+            <button
+              onClick={onVietnamClick}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/10 bg-white/5 px-6 py-2 text-sm uppercase tracking-widest text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+            >
               From Vietnam to the world 🇻🇳
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -646,6 +365,14 @@ function AboutSection() {
 
 /* ─── Footer ─── */
 function Footer() {
+  const [copied, setCopied] = useState(false)
+
+  const handleFeedback = () => {
+    navigator.clipboard.writeText('giangocquoc@gmail.com')
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <footer className="w-full px-8 py-24" id="contact">
       <div className="mx-auto w-full max-w-7xl">
@@ -665,9 +392,7 @@ function Footer() {
           >
             <MessagesSquare className="mb-6 h-8 w-8 text-white/80" />
             <h3 className="mb-2 text-xl">Zalo Community</h3>
-            <p className="text-sm text-muted-foreground">
-              Tham gia cộng đồng Zalo
-            </p>
+            <p className="text-sm text-muted-foreground">Tham gia cộng đồng Zalo</p>
           </a>
 
           <a
@@ -678,47 +403,34 @@ function Footer() {
           >
             <Facebook className="mb-6 h-8 w-8 text-white/80" />
             <h3 className="mb-2 text-xl">Facebook</h3>
-            <p className="text-sm text-muted-foreground">
-              Follow để cập nhật dự án
-            </p>
+            <p className="text-sm text-muted-foreground">Follow để cập nhật dự án</p>
           </a>
 
-          <a
-            href="mailto:giangocquoc@gmail.com?subject=G%C3%B3p%20%C3%BD%20c%C3%B4ng%20c%E1%BB%A5%20m%E1%BB%9Bi%20%E2%80%94%20P-ShareHub"
-            className="liquid-glass flex flex-col rounded-2xl p-8 transition-transform hover:scale-[1.02]"
+          <button
+            onClick={handleFeedback}
+            className="liquid-glass flex flex-col rounded-2xl p-8 text-left transition-transform hover:scale-[1.02]"
           >
-            <Mail className="mb-6 h-8 w-8 text-white/80" />
+            <div className="mb-6 flex items-center gap-2">
+              <Mail className="h-8 w-8 text-white/80" />
+              {copied && (
+                <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400">
+                  <Check className="h-3 w-3" /> Đã copy!
+                </span>
+              )}
+            </div>
             <h3 className="mb-2 text-xl">Góp ý công cụ mới</h3>
             <p className="text-sm text-muted-foreground">
-              Gửi email đề xuất công cụ bạn cần
+              {copied ? '✓ Đã copy email vào bộ nhớ tạm!' : 'Nhấn để copy email, gửi đề xuất công cụ bạn cần'}
             </p>
-          </a>
+          </button>
         </div>
 
         <div className="flex flex-col items-center justify-between border-t border-white/10 pt-8 text-sm text-muted-foreground md:flex-row">
-          <p>
-            © {new Date().getFullYear()} P-ShareHub. Built with passion from
-            Vietnam.
-          </p>
+          <p>© {new Date().getFullYear()} P-ShareHub. Built with passion from Vietnam.</p>
           <div className="mt-4 flex gap-6 md:mt-0">
-            <a
-              href="https://penglish.vercel.app"
-              className="transition-colors hover:text-white"
-            >
-              P-English
-            </a>
-            <a
-              href="https://www.facebook.com/peterpan003"
-              className="transition-colors hover:text-white"
-            >
-              Facebook
-            </a>
-            <a
-              href="https://zalo.me/g/vbycrx997"
-              className="transition-colors hover:text-white"
-            >
-              Zalo
-            </a>
+            <a href="https://penglish.vercel.app" className="transition-colors hover:text-white">P-English</a>
+            <a href="https://www.facebook.com/peterpan003" className="transition-colors hover:text-white">Facebook</a>
+            <a href="https://zalo.me/g/vbycrx997" className="transition-colors hover:text-white">Zalo</a>
           </div>
         </div>
       </div>
@@ -728,75 +440,75 @@ function Footer() {
 
 /* ─── Main Page ─── */
 export default function Home() {
+  const [view, setView] = useState<View>('home')
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
   const scrollToPEnglish = useCallback(() => {
     const el = document.getElementById('p-english')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
   const scrollToContact = useCallback(() => {
     const el = document.getElementById('contact')
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    }
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [])
 
+  const goToVietnam = useCallback(() => {
+    setView('vietnam')
+    window.scrollTo(0, 0)
+  }, [])
+
+  // If not home, render the selected view
+  if (view === 'chat') return <ChatHabibi onBack={() => setView('home')} />
+  if (view === 'vietnam') return <VietnamMap onBack={() => setView('home')} />
+  if (view === 'study') return <StudyTool onBack={() => setView('home')} />
+
+  // Home view
   return (
     <div className="relative w-full bg-black">
-      {/* Galaxy Canvas Background */}
       <GalaxyBackground />
 
-      {/* Main Content Overlay */}
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* Status Bar */}
         <div className="status-bar relative z-50 flex items-center justify-between px-6 py-1.5 text-[11px]">
           <div className="flex items-center gap-4">
-            <span className="text-white/40">P-ShareHub v1.0</span>
+            <span className="text-white/40">P-ShareHub v2.0</span>
             <span className="status-dot" />
             <span className="text-emerald-400/70">All systems operational</span>
           </div>
           <div className="flex items-center gap-4 text-white/40">
-            <span>2 sản phẩm hoạt động</span>
-            <span>•</span>
-            <span>2 đang phát triển</span>
+            <span>4 sản phẩm hoạt động</span>
           </div>
         </div>
 
         {/* Navigation Bar */}
         <nav className="liquid-glass-nav sticky top-0 z-50 mx-auto flex w-full max-w-7xl flex-row items-center justify-between px-8 py-4">
-          <div
-            className="text-3xl tracking-tight text-foreground"
-            style={{ fontFamily: 'var(--font-display)' }}
-          >
-            P-ShareHub
+          <div className="flex items-center gap-3">
+            <img src="/p-logo.png" alt="P" className="h-8 w-8" />
+            <div
+              className="text-3xl tracking-tight text-foreground"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              P-ShareHub
+            </div>
           </div>
 
-          <div className="hidden items-center space-x-8 md:flex">
-            <a
-              href="#"
-              className="text-sm text-foreground transition-colors"
-            >
+          {/* Desktop Nav */}
+          <div className="hidden items-center space-x-6 md:flex">
+            <a href="#" className="text-sm text-foreground transition-colors">
               Home
             </a>
-            <a
-              href="#p-english"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              P-English
-            </a>
-            <a
-              href="#p-df"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              P-DF
-            </a>
-            <a
-              href="#tools"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              P-API
-            </a>
+            <button onClick={goToVietnam} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+              Việt Nam 🇻🇳
+            </button>
+            <button onClick={() => setView('study')} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+              <GraduationCap className="h-3.5 w-3.5" />
+              Study Tool
+            </button>
+            <button onClick={() => setView('chat')} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+              <MessageCircle className="h-3.5 w-3.5" />
+              Chat AI
+            </button>
             <a
               href="#contact"
               className="text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -805,15 +517,37 @@ export default function Home() {
             </a>
           </div>
 
+          {/* Mobile menu button */}
           <button
-            onClick={scrollToContact}
-            className="liquid-glass cursor-pointer rounded-full px-6 py-2.5 text-sm text-foreground transition-transform hover:scale-[1.03]"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-white/60 md:hidden"
           >
-            Tìm hiểu thêm về P-Share
+            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </nav>
 
-        {/* Hero Section - First thing users see */}
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-40 bg-black/95 pt-20 md:hidden">
+            <div className="flex flex-col items-center gap-6 px-8">
+              <a href="#" onClick={() => setMobileMenuOpen(false)} className="text-lg text-white">Home</a>
+              <button onClick={() => { goToVietnam(); setMobileMenuOpen(false) }} className="text-lg text-white/70">
+                Việt Nam 🇻🇳
+              </button>
+              <button onClick={() => { setView('study'); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
+                <GraduationCap className="h-5 w-5" /> Study Tool
+              </button>
+              <button onClick={() => { setView('chat'); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
+                <MessageCircle className="h-5 w-5" /> Chat AI
+              </button>
+              <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="text-lg text-white/70">
+                Cộng đồng
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* Hero Section */}
         <main className="flex min-h-[calc(100vh-100px)] flex-col items-center justify-center px-6 pb-20 pt-16 text-center">
           <h1
             className="animate-fade-rise max-w-7xl text-5xl font-normal leading-[0.95] tracking-[-2.46px] sm:text-7xl md:text-8xl"
@@ -827,17 +561,197 @@ export default function Home() {
             tự bước ra khỏi bóng tối để biến bản thân thành ánh sáng&quot;
           </p>
 
-          <button
-            onClick={scrollToPEnglish}
-            className="liquid-glass animate-fade-rise-delay-2 mt-12 cursor-pointer rounded-full px-14 py-5 text-base text-foreground transition-transform hover:scale-[1.03]"
-          >
-            P-English?
-          </button>
+          {/* Feature buttons */}
+          <div className="animate-fade-rise-delay-2 mt-12 flex flex-wrap justify-center gap-3">
+            <button
+              onClick={goToVietnam}
+              className="liquid-glass cursor-pointer rounded-full px-6 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
+            >
+              Việt Nam 🇻🇳
+            </button>
+            <button
+              onClick={() => setView('study')}
+              className="liquid-glass cursor-pointer rounded-full px-6 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
+            >
+              Study Tool 📚
+            </button>
+            <button
+              onClick={() => setView('chat')}
+              className="liquid-glass cursor-pointer rounded-full px-6 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
+            >
+              Chat Habibi ✨
+            </button>
+          </div>
         </main>
 
-        <FeaturedTools />
-        <ProductHighlights />
-        <AboutSection />
+        {/* Featured Tools */}
+        <section className="mx-auto w-full max-w-7xl px-8 py-24 sm:py-32" id="tools">
+          <div className="mb-16">
+            <h2
+              className="mb-4 text-4xl tracking-tight sm:text-5xl"
+              style={{ fontFamily: 'var(--font-display)' }}
+            >
+              Công cụ nổi bật
+            </h2>
+            <div className="h-px w-24 bg-white/20" />
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <ToolCard
+              title="Việt Nam 🇻🇳"
+              description="Khám phá bản đồ Việt Nam tương tác — lịch sử, anh hùng, danh lam, ẩm thực mỗi vùng đất."
+              icon={Map}
+              onClick={goToVietnam}
+            />
+            <ToolCard
+              title="Study Tool"
+              description="Biến PDF, tài liệu thành bài học: flashcard, trắc nghiệm, điền chỗ trống, tóm tắt, nối cặp."
+              icon={BookOpen}
+              onClick={() => setView('study')}
+            />
+            <ToolCard
+              title="Chat Habibi"
+              description="Trợ lý AI thông minh với 4 chế độ: Chat, Build Web, Học tập, Sáng tạo. Xem tiến độ tư duy AI."
+              icon={MessageCircle}
+              onClick={() => setView('chat')}
+            />
+            <ToolCard
+              title="P-English"
+              description="Học tiếng Anh qua flashcards, shadowing, lộ trình cá nhân hóa — miễn phí, không cần đăng ký."
+              icon={BookOpen}
+              url="https://penglish.vercel.app"
+            />
+          </div>
+        </section>
+
+        {/* Product Highlights - Vietnam */}
+        <section className="mx-auto w-full max-w-7xl px-8 py-24 sm:py-32">
+          <div className="flex flex-col items-center gap-16 lg:flex-row">
+            <div className="flex-1 space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
+                <Map className="h-3.5 w-3.5" />
+                Interactive Map
+              </div>
+              <h2
+                className="text-5xl tracking-tight sm:text-6xl"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Việt Nam 🇻🇳
+              </h2>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Khám phá bản đồ tương tác — từ Hà Nội ngàn năm văn hiến đến Cần Thơ sông nước.
+                Mỗi vùng đất mang một câu chuyện lịch sử, những vị anh hùng, danh lam thắng cảnh và ẩm thực đặc sắc.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <FeatureCategory icon={Globe} title="Lịch sử" color="violet" items={['Sự kiện lịch sử nổi bật', 'Dòng thời gian tương tác', 'Câu chuyện mỗi vùng đất']} />
+                <FeatureCategory icon={ShieldCheck} title="Anh hùng" color="emerald" items={['Danh nhân văn hóa', 'Anh hùng dân tộc', 'Câu chuyện truyền cảm hứng']} />
+                <FeatureCategory icon={Target} title="Ẩm thực" color="amber" items={['Đặc sản mỗi vùng', 'Văn hóa ẩm thực', 'Khám phá hương vị']} />
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={goToVietnam}
+                  className="liquid-glass inline-flex cursor-pointer items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
+                >
+                  Khám phá bản đồ <ArrowRight className="ml-2 h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="relative w-full flex-1">
+              <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 p-2">
+                <div className="flex h-full w-full items-center justify-center rounded-xl bg-white/[0.02] text-6xl">
+                  🇻🇳
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Study Tool Highlight */}
+        <section className="mx-auto w-full max-w-7xl px-8 py-24 sm:py-32">
+          <div className="flex flex-col items-center gap-16 lg:flex-row-reverse">
+            <div className="flex-1 space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
+                <GraduationCap className="h-3.5 w-3.5" />
+                Study Tool
+              </div>
+              <h2
+                className="text-5xl tracking-tight sm:text-6xl"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Study Tool 📚
+              </h2>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Biến mọi tài liệu thành bài học tương tác. Chọn mức độ khó, số lượng câu hỏi
+                và 5 loại bài học khác nhau — AI sẽ tự động tạo cho bạn.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <FeatureCategory icon={Layers} title="5 loại bài học" color="sky" items={['Lật thẻ Flashcard', 'Điền chỗ trống', 'Trắc nghiệm A-B-C-D']} />
+                <FeatureCategory icon={Zap} title="3 mức độ" color="amber" items={['Dễ — Cơ bản', 'Trung bình — Nền tảng', 'Khó — Nâng cao']} />
+                <FeatureCategory icon={PenLine} title="Đa nguồn" color="rose" items={['File PDF, Word', 'Hình ảnh', 'Text trực tiếp']} />
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={() => setView('study')}
+                  className="liquid-glass inline-flex cursor-pointer items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
+                >
+                  Tạo bài học <ArrowRight className="ml-2 h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="relative w-full flex-1">
+              <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 p-2">
+                <div className="flex h-full w-full items-center justify-center rounded-xl bg-white/[0.02] text-6xl">
+                  📚
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Chat Habibi Highlight */}
+        <section className="mx-auto w-full max-w-7xl px-8 py-24 sm:py-32">
+          <div className="flex flex-col items-center gap-16 lg:flex-row">
+            <div className="flex-1 space-y-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm text-white/80">
+                <MessageCircle className="h-3.5 w-3.5" />
+                AI Assistant
+              </div>
+              <h2
+                className="text-5xl tracking-tight sm:text-6xl"
+                style={{ fontFamily: 'var(--font-display)' }}
+              >
+                Chat Habibi ✨
+              </h2>
+              <p className="max-w-xl text-lg leading-relaxed text-muted-foreground">
+                Trợ lý AI thông minh với 4 chế độ chuyên biệt. Xem trực tiếp
+                tiến độ tư duy của AI, chọn chế độ phù hợp và Habibi sẽ chỉ
+                trả lời trong lĩnh vực bạn cần.
+              </p>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <FeatureCategory icon={MessageCircle} title="Chat" color="violet" items={['Trò chuyện tự do', 'Hỏi đáp mọi chủ đề', 'Giải thích dễ hiểu']} />
+                <FeatureCategory icon={Code} title="Build Web" color="emerald" items={['Xây dựng website', 'Code mẫu cụ thể', 'Best practices']} />
+                <FeatureCategory icon={GraduationCap} title="Học tập" color="amber" items={['Tạo bài tập', 'Soạn flashcard', 'Giải thích khái niệm']} />
+                <FeatureCategory icon={Sparkles} title="Sáng tạo" color="rose" items={['Viết thơ, truyện', 'Nội dung marketing', 'Brainstorm ý tưởng']} />
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={() => setView('chat')}
+                  className="liquid-glass inline-flex cursor-pointer items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
+                >
+                  Chat với Habibi <ArrowRight className="ml-2 h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <div className="relative w-full flex-1">
+              <div className="galaxy-card aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10 p-2">
+                <div className="flex h-full w-full items-center justify-center rounded-xl bg-white/[0.02] text-6xl">
+                  ✨
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <AboutSection onVietnamClick={goToVietnam} />
         <Footer />
       </div>
     </div>
