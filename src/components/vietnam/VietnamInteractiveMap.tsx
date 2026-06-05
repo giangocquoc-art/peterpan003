@@ -27,6 +27,9 @@ import {
   Marker,
   Popup,
   Tooltip,
+  CircleMarker,
+  Polyline,
+  Polygon,
   useMap,
   useMapEvents,
 } from 'react-leaflet'
@@ -93,33 +96,118 @@ interface SovereigntyLabel {
 }
 
 const SOVEREIGNTY_LABELS: SovereigntyLabel[] = [
-  // ── Hoàng Sa ──
-  {
-    position: [16.9, 112.55],
-    text: 'Hoàng Sa',
-    style: 'primary',
-    isClickable: true,
-    slug: 'hoang-sa',
-  },
-  // ── Trường Sa ──
-  {
-    position: [9.45, 114.55],
-    text: 'Trường Sa',
-    style: 'primary',
-    isClickable: true,
-    slug: 'truong-sa',
-  },
   // ── Biển Đông ──
   {
-    position: [12.7, 112.35],
+    position: [13.2, 113.0],
     text: 'BIỂN ĐÔNG',
     style: 'sea',
   },
   // ── Việt Nam label in the sea ──
   {
-    position: [14.0, 110.0],
+    position: [15.0, 109.65],
     text: 'VIỆT NAM',
     style: 'secondary',
+  },
+]
+
+interface CountryBoundary {
+  name: string
+  positions: [number, number][]
+  isVietnam?: boolean
+}
+
+interface ArchipelagoPoint {
+  name: string
+  position: [number, number]
+  priority: 'key' | 'detail'
+}
+
+interface ArchipelagoCluster {
+  slug: 'hoang-sa' | 'truong-sa'
+  name: string
+  secondaryName: string
+  center: [number, number]
+  labelPosition: [number, number]
+  envelope: [number, number][]
+  points: ArchipelagoPoint[]
+}
+
+const COUNTRY_BOUNDARIES: CountryBoundary[] = [
+  {
+    name: 'Việt Nam',
+    isVietnam: true,
+    positions: [
+      [23.35, 105.3], [22.4, 106.7], [21.2, 107.3], [20.1, 106.8],
+      [18.6, 106.1], [17.1, 107.0], [16.0, 108.2], [14.2, 109.1],
+      [12.4, 109.2], [10.8, 107.0], [9.7, 106.4], [8.6, 104.9],
+      [9.7, 104.6], [11.5, 106.0], [12.6, 107.3], [14.6, 107.6],
+      [16.4, 106.5], [18.2, 105.5], [20.0, 104.9], [21.7, 104.2],
+      [23.35, 105.3],
+    ],
+  },
+  {
+    name: 'Trung Quốc',
+    positions: [[23.35, 105.3], [22.9, 106.3], [22.4, 107.1], [21.6, 108.0]],
+  },
+  {
+    name: 'Lào',
+    positions: [[22.4, 102.4], [20.2, 104.2], [18.0, 105.0], [16.4, 106.5], [14.6, 107.6]],
+  },
+  {
+    name: 'Campuchia',
+    positions: [[14.6, 107.6], [12.8, 107.3], [11.0, 106.1], [10.6, 104.8], [9.9, 104.6]],
+  },
+  {
+    name: 'Thái Lan',
+    positions: [[20.5, 100.8], [18.0, 101.2], [15.7, 102.1], [13.9, 102.6], [11.6, 102.9]],
+  },
+  {
+    name: 'Philippines',
+    positions: [[18.6, 120.0], [15.0, 120.0], [12.4, 121.0], [9.0, 122.0], [6.0, 121.5]],
+  },
+  {
+    name: 'Malaysia',
+    positions: [[7.2, 114.0], [5.5, 115.3], [3.8, 114.8]],
+  },
+]
+
+const ARCHIPELAGO_CLUSTERS: ArchipelagoCluster[] = [
+  {
+    slug: 'hoang-sa',
+    name: 'Quần đảo Hoàng Sa',
+    secondaryName: 'Hoàng Sa / Paracel',
+    center: [16.6, 112.3],
+    labelPosition: [17.25, 112.78],
+    envelope: [[17.35, 111.45], [17.35, 113.25], [16.0, 113.35], [15.65, 112.0], [16.15, 111.25]],
+    points: [
+      { name: 'Đảo Phú Lâm', position: [16.84, 112.34], priority: 'key' },
+      { name: 'Đảo Cây', position: [16.97, 112.27], priority: 'key' },
+      { name: 'Đảo Linh Côn', position: [16.66, 112.73], priority: 'key' },
+      { name: 'Đảo Quang Hòa', position: [16.45, 111.72], priority: 'key' },
+      { name: 'Đảo Tri Tôn', position: [15.79, 111.20], priority: 'key' },
+      { name: 'Nhóm An Vĩnh', position: [16.95, 112.10], priority: 'detail' },
+      { name: 'Nhóm Lưỡi Liềm', position: [16.50, 111.65], priority: 'detail' },
+    ],
+  },
+  {
+    slug: 'truong-sa',
+    name: 'Quần đảo Trường Sa',
+    secondaryName: 'Trường Sa / Spratly',
+    center: [9.5, 114.3],
+    labelPosition: [10.65, 116.25],
+    envelope: [[12.0, 111.0], [12.0, 117.4], [8.6, 117.5], [6.0, 115.8], [6.2, 112.0], [9.2, 111.0]],
+    points: [
+      { name: 'Trường Sa Lớn', position: [8.64, 111.92], priority: 'key' },
+      { name: 'Song Tử Tây', position: [11.43, 114.33], priority: 'key' },
+      { name: 'Sinh Tồn', position: [9.89, 114.32], priority: 'key' },
+      { name: 'Sơn Ca', position: [10.38, 114.48], priority: 'key' },
+      { name: 'Nam Yết', position: [10.18, 114.37], priority: 'key' },
+      { name: 'Phan Vinh', position: [8.97, 113.68], priority: 'key' },
+      { name: 'Đá Tây', position: [8.86, 112.26], priority: 'detail' },
+      { name: 'Đá Lát', position: [8.67, 111.67], priority: 'detail' },
+      { name: 'Tốc Tan', position: [8.82, 114.02], priority: 'detail' },
+      { name: 'Thuyền Chài', position: [8.17, 113.30], priority: 'detail' },
+    ],
   },
 ]
 
@@ -164,6 +252,142 @@ function MapEventHandler({ onMapClick }: { onMapClick: () => void }) {
     },
   })
   return null
+}
+
+function useZoomLevel() {
+  const map = useMap()
+  const [zoom, setZoom] = useState(map.getZoom())
+
+  useMapEvents({
+    zoomend() {
+      setZoom(map.getZoom())
+    },
+  })
+
+  return zoom
+}
+
+function createArchipelagoLabelIcon(cluster: ArchipelagoCluster, zoom: number) {
+  const compact = zoom <= 5
+  return L.divIcon({
+    html: `<div class="vietnam-archipelago-card ${compact ? 'compact' : ''}">
+      <span class="flag">🇻🇳</span>
+      <span class="label-main">${cluster.name}</span>
+      <span class="label-sub">${cluster.secondaryName}</span>
+    </div>`,
+    className: 'vietnam-archipelago-label',
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  })
+}
+
+function createIslandPointIcon(isKey: boolean, zoom: number) {
+  const size = isKey ? (zoom >= 8 ? 10 : 8) : 7
+  return L.divIcon({
+    html: `<div class="vietnam-island-dot ${isKey ? 'key' : 'detail'}" style="width:${size}px;height:${size}px"></div>`,
+    className: 'vietnam-island-point',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+  })
+}
+
+function CountryBoundaryLayer() {
+  return (
+    <>
+      {COUNTRY_BOUNDARIES.map((boundary) => (
+        <Polyline
+          key={boundary.name}
+          positions={boundary.positions}
+          pathOptions={{
+            color: boundary.isVietnam ? 'rgba(185, 28, 28, 0.62)' : 'rgba(15, 39, 71, 0.45)',
+            weight: boundary.isVietnam ? 1.7 : 1,
+            opacity: 0.92,
+            dashArray: boundary.isVietnam ? undefined : '5 5',
+            lineCap: 'round',
+            lineJoin: 'round',
+          }}
+        />
+      ))}
+    </>
+  )
+}
+
+function ArchipelagoLayer({ onSelectPlace }: { onSelectPlace: (slug: string) => void }) {
+  const zoom = useZoomLevel()
+  const showEnvelope = zoom >= 6
+  const showDetailPoints = zoom >= 8
+  const showKeyPoints = zoom >= 6
+
+  return (
+    <>
+      {ARCHIPELAGO_CLUSTERS.map((cluster) => {
+        const visiblePoints = cluster.points.filter((point) =>
+          showDetailPoints ? true : showKeyPoints && point.priority === 'key'
+        )
+
+        return (
+          <div key={cluster.slug}>
+            {showEnvelope && (
+              <Polygon
+                positions={cluster.envelope}
+                pathOptions={{
+                  color: 'rgba(220, 38, 38, 0.56)',
+                  weight: 1.2,
+                  opacity: 0.9,
+                  fillColor: 'rgba(220, 38, 38, 0.06)',
+                  fillOpacity: 1,
+                  dashArray: '6 6',
+                }}
+              />
+            )}
+
+            {zoom <= 5 && (
+              <CircleMarker
+                center={cluster.center}
+                radius={8}
+                pathOptions={{
+                  color: '#dc2626',
+                  weight: 2,
+                  fillColor: '#ffffff',
+                  fillOpacity: 1,
+                }}
+                eventHandlers={{ click: () => onSelectPlace(cluster.slug) }}
+              />
+            )}
+
+            {visiblePoints.map((point) => (
+              <Marker
+                key={`${cluster.slug}-${point.name}`}
+                position={point.position}
+                icon={createIslandPointIcon(point.priority === 'key', zoom)}
+                eventHandlers={{ click: () => onSelectPlace(cluster.slug) }}
+              >
+                {zoom >= 8 && (
+                  <Tooltip direction="top" offset={[0, -6]} className="vietnam-island-tooltip">
+                    <span>{point.name}</span>
+                  </Tooltip>
+                )}
+              </Marker>
+            ))}
+
+            {cluster.slug === 'truong-sa' && zoom >= 6 && (
+              <Polyline
+                positions={[cluster.labelPosition, cluster.center]}
+                pathOptions={{ color: 'rgba(220, 38, 38, 0.38)', weight: 1, dashArray: '4 6' }}
+              />
+            )}
+
+            <Marker
+              position={cluster.labelPosition}
+              icon={createArchipelagoLabelIcon(cluster, zoom)}
+              interactive
+              eventHandlers={{ click: () => onSelectPlace(cluster.slug) }}
+            />
+          </div>
+        )
+      })}
+    </>
+  )
 }
 
 // ─── Custom DivIcon Factory ──────────────────────────────────────────────────
@@ -409,9 +633,67 @@ function useLeafletStyles() {
       }
 
       /* ── Sovereignty label base ── */
-      .vietnam-sovereignty-label {
+      .vietnam-sovereignty-label,
+      .vietnam-archipelago-label,
+      .vietnam-island-point {
         background: transparent !important;
         border: none !important;
+      }
+
+      .vietnam-archipelago-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        background: rgba(255,255,255,0.88);
+        border: 1px solid rgba(37,99,235,0.25);
+        border-radius: 999px;
+        box-shadow: 0 8px 24px rgba(15,39,71,0.12);
+        backdrop-filter: blur(10px);
+        padding: 5px 10px;
+        color: #991b1b;
+        font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+        cursor: pointer;
+      }
+      .vietnam-archipelago-card.compact {
+        padding: 4px 9px;
+      }
+      .vietnam-archipelago-card .flag {
+        font-size: 13px;
+        line-height: 1;
+      }
+      .vietnam-archipelago-card .label-main {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+      }
+      .vietnam-archipelago-card .label-sub {
+        color: rgba(100,116,139,0.75);
+        font-size: 9px;
+        font-weight: 600;
+      }
+      .vietnam-archipelago-card.compact .label-sub {
+        display: none;
+      }
+      .vietnam-island-dot {
+        border-radius: 999px;
+        background: #ffffff;
+        border: 2px solid #dc2626;
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.92), 0 4px 12px rgba(220,38,38,0.32);
+      }
+      .vietnam-island-dot.detail {
+        border-color: #f97316;
+        box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 3px 9px rgba(249,115,22,0.28);
+      }
+      .vietnam-island-tooltip {
+        background: rgba(255,255,255,0.94) !important;
+        color: #7f1d1d !important;
+        border: 1px solid rgba(220,38,38,0.16) !important;
+        border-radius: 999px !important;
+        box-shadow: 0 6px 18px rgba(15,39,71,0.12) !important;
+        padding: 3px 8px !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
       }
 
       /* ── Flag marker base ── */
@@ -554,6 +836,9 @@ export default function VietnamInteractiveMap({
           url="https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png"
         />
 
+        <CountryBoundaryLayer />
+        <ArchipelagoLayer onSelectPlace={onSelectPlace} />
+
         {/* ── Sovereignty Labels (from our controlled dataset) ── */}
         {SOVEREIGNTY_LABELS.map((label, i) => {
           if (isLabelBlacklisted(label.text)) return null
@@ -568,25 +853,23 @@ export default function VietnamInteractiveMap({
               position={label.position}
               icon={L.divIcon({
                 html: `<div style="
-                  background: ${
-                    isPrimary
-                      ? 'rgba(255, 255, 255, 0.92)'
-                      : isSea
-                      ? 'rgba(255, 255, 255, 0.78)'
-                      : 'rgba(255, 255, 255, 0.78)'
-                  };
-                  color: ${isPrimary ? '#b91c1c' : isSea ? '#1d4ed8' : '#475569'};
-                  font-size: ${isPrimary ? '12px' : isSea ? '15px' : '12px'};
-                  font-weight: ${isPrimary ? '700' : isSea ? '800' : '600'};
-                  padding: ${isPrimary ? '3px 8px' : isSea ? '3px 14px' : '3px 9px'};
+                  background: ${isSea ? 'transparent' : 'rgba(255, 255, 255, 0.78)'};
+                  color: ${isSea ? 'rgba(37, 99, 235, 0.75)' : '#475569'};
+                  font-size: ${isSea ? '17px' : '12px'};
+                  font-weight: ${isSea ? '700' : '600'};
+                  padding: ${isSea ? '0' : '3px 9px'};
                   border-radius: 999px;
                   white-space: nowrap;
                   text-align: center;
-                  border: ${isPrimary ? '1px solid rgba(220, 38, 38, 0.28)' : isSea ? '1px solid rgba(59, 130, 246, 0.24)' : '1px solid rgba(100,116,139,0.22)'};
-                  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+                  border: ${isSea ? 'none' : '1px solid rgba(100,116,139,0.22)'};
+                  box-shadow: ${isSea ? 'none' : '0 2px 8px rgba(15, 23, 42, 0.12)'};
+                  text-shadow: ${isSea ? '0 1px 8px rgba(255,255,255,0.7)' : 'none'};
                   font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
-                  letter-spacing: ${isSea ? '0.12em' : '0.02em'};
+                  letter-spacing: ${isSea ? '0.18em' : '0.02em'};
                   line-height: 1.4;
+                  text-transform: ${isSea ? 'uppercase' : 'none'};
+                  transform: ${isSea ? 'rotate(-16deg)' : 'none'};
+                  opacity: ${isSea ? '0.86' : '1'};
                   cursor: ${label.isClickable ? 'pointer' : 'default'};
                 ">${label.text}</div>`,
                 className: 'vietnam-sovereignty-label',
@@ -611,7 +894,7 @@ export default function VietnamInteractiveMap({
         <MapEventHandler onMapClick={handleMapClick} />
 
         {/* Render markers for each visible place */}
-        {safePlaces.map((place) => (
+        {safePlaces.filter((place) => !['hoang-sa', 'truong-sa'].includes(place.slug)).map((place) => (
           <PlaceMarker
             key={place.slug}
             place={place}
@@ -664,6 +947,21 @@ export default function VietnamInteractiveMap({
           <span className="text-[11px] text-slate-400">
             {safePlaces.length} địa điểm
           </span>
+        </div>
+      </div>
+
+      {/* Mini inset map */}
+      <div className="pointer-events-none absolute bottom-14 right-4 z-[1000] hidden sm:block">
+        <div className="rounded-xl border border-slate-200 bg-white/92 p-3 shadow-lg backdrop-blur-md">
+          <div className="relative h-28 w-36 text-[9px] font-semibold text-slate-500">
+            <div className="absolute left-8 top-3 h-20 w-8 rounded-full bg-red-100/80 shadow-inner" style={{ transform: 'rotate(18deg)' }} />
+            <span className="absolute left-4 top-9 text-red-700">Việt Nam</span>
+            <span className="absolute left-20 top-7 h-2 w-2 rounded-full border border-red-500 bg-white" />
+            <span className="absolute left-24 top-5 text-red-600">Hoàng Sa</span>
+            <span className="absolute left-24 top-16 h-2 w-2 rounded-full border border-red-500 bg-white" />
+            <span className="absolute left-16 top-20 text-red-600">Trường Sa</span>
+            <span className="absolute bottom-1 right-2 -rotate-12 text-[10px] tracking-[0.18em] text-blue-500/70">BIỂN ĐÔNG</span>
+          </div>
         </div>
       </div>
 

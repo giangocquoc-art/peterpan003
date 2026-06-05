@@ -1926,12 +1926,131 @@ const islandPlaces: VietnamPlace[] = [
   },
 ]
 
-// ─── Combine All Data ────────────────────────────────────────────────────────
+// ─── 2025 Administrative Display Model ───────────────────────────────────────
 
-export const vietnamAtlas: VietnamPlace[] = [
+export const VIETNAM_ADMINISTRATIVE_COUNTS = {
+  cities: 6,
+  provinces: 28,
+  provincialUnits: 34,
+  seaIslandLabel: 'Biển đảo Việt Nam',
+} as const
+
+const supplemental2025Places: VietnamPlace[] = [
+  {
+    id: '52',
+    slug: 'lai-chau',
+    name: 'Lai Châu',
+    type: 'province',
+    region: 'north',
+    coordinates: [22.3862, 103.4707],
+    shortDescription: 'Tỉnh biên giới Tây Bắc với núi cao, đèo Ô Quy Hồ và không gian văn hóa các dân tộc thiểu số.',
+    icon: '⛰️',
+    accentColor: '#2563eb',
+    tags: ['Tây Bắc', 'biên giới', 'núi cao', 'dân tộc'],
+    historyHighlights: ['Lai Châu là vùng đất biên cương quan trọng ở Tây Bắc, gắn với các tuyến giao thương và phòng thủ vùng cao.'],
+    notableHeroes: [],
+    landmarks: [{ name: 'Đèo Ô Quy Hồ', shortDescription: 'Một trong tứ đại đỉnh đèo của miền núi phía Bắc, cảnh quan hùng vĩ.' }],
+    foods: [{ name: 'Cá suối nướng', shortDescription: 'Món ăn dân dã vùng cao, chế biến với mắc khén và rau rừng.' }],
+    cultureNotes: ['Lai Châu có cộng đồng Thái, Mông, Dao, Hà Nhì với lễ hội và trang phục truyền thống phong phú.'],
+    suggestedLearningQuestions: ['Vị trí biên giới khiến Lai Châu có vai trò gì trong vùng Tây Bắc?'],
+    relatedPlaces: ['dien-bien', 'lao-cai', 'son-la'],
+  },
+  {
+    id: '53',
+    slug: 'cao-bang',
+    name: 'Cao Bằng',
+    type: 'province',
+    region: 'north',
+    coordinates: [22.6657, 106.2570],
+    shortDescription: 'Vùng non nước biên cương với thác Bản Giốc, Pác Bó và dấu ấn cách mạng Việt Nam.',
+    icon: '🏞️',
+    accentColor: '#0f766e',
+    tags: ['Bản Giốc', 'Pác Bó', 'biên giới', 'cách mạng'],
+    historyHighlights: ['Pác Bó là nơi Chủ tịch Hồ Chí Minh trở về nước năm 1941, mở đầu giai đoạn quan trọng của cách mạng Việt Nam.'],
+    notableHeroes: [{ name: 'Kim Đồng', period: '1929–1943', shortDescription: 'Đội viên thiếu niên anh hùng, biểu tượng của tuổi trẻ cách mạng Cao Bằng.' }],
+    landmarks: [{ name: 'Thác Bản Giốc', shortDescription: 'Thác nước lớn và nổi tiếng ở vùng biên giới Việt Nam.' }],
+    foods: [{ name: 'Bánh cuốn Cao Bằng', shortDescription: 'Bánh cuốn dùng với nước canh xương nóng, hương vị đặc trưng vùng cao.' }],
+    cultureNotes: ['Cao Bằng là không gian văn hóa Tày, Nùng, Dao với hát then, đàn tính và chợ phiên vùng cao.'],
+    suggestedLearningQuestions: ['Pác Bó có ý nghĩa thế nào trong lịch sử cách mạng Việt Nam?'],
+    relatedPlaces: ['lang-son', 'thai-nguyen', 'tuyen-quang'],
+  },
+  {
+    id: '54',
+    slug: 'lang-son',
+    name: 'Lạng Sơn',
+    type: 'province',
+    region: 'north',
+    coordinates: [21.8537, 106.7615],
+    shortDescription: 'Cửa ngõ Đông Bắc với Ải Chi Lăng, chợ Kỳ Lừa và không gian văn hóa Tày Nùng.',
+    icon: '🏯',
+    accentColor: '#7c2d12',
+    tags: ['Đông Bắc', 'Chi Lăng', 'biên giới', 'Tày Nùng'],
+    historyHighlights: ['Ải Chi Lăng là địa danh lịch sử gắn với nhiều chiến thắng chống ngoại xâm của dân tộc Việt Nam.'],
+    notableHeroes: [{ name: 'Lê Lợi', period: '1385–1433', shortDescription: 'Lãnh tụ khởi nghĩa Lam Sơn, gắn với chiến thắng Chi Lăng - Xương Giang.' }],
+    landmarks: [{ name: 'Ải Chi Lăng', shortDescription: 'Địa thế hiểm yếu, chứng tích quân sự quan trọng trong lịch sử Việt Nam.' }],
+    foods: [{ name: 'Vịt quay Lạng Sơn', shortDescription: 'Món vịt quay lá mắc mật nổi tiếng của vùng Đông Bắc.' }],
+    cultureNotes: ['Lạng Sơn nổi bật với hát then, đàn tính, chợ phiên và giao lưu văn hóa vùng biên.'],
+    suggestedLearningQuestions: ['Vì sao Ải Chi Lăng thường xuất hiện trong các chiến thắng lịch sử?'],
+    relatedPlaces: ['cao-bang', 'quang-ninh', 'bac-giang'],
+  },
+  {
+    id: '55',
+    slug: 'bac-ninh',
+    name: 'Bắc Ninh',
+    type: 'province',
+    region: 'north',
+    coordinates: [21.1861, 106.0763],
+    shortDescription: 'Miền quan họ Kinh Bắc, trung tâm văn hóa lâu đời của đồng bằng Bắc Bộ.',
+    icon: '🎶',
+    accentColor: '#be123c',
+    tags: ['quan họ', 'Kinh Bắc', 'văn hóa', 'làng nghề'],
+    historyHighlights: ['Vùng Kinh Bắc là cái nôi văn hóa quan họ, Phật giáo cổ và nhiều làng nghề truyền thống của Việt Nam.'],
+    notableHeroes: [{ name: 'Lý Thái Tổ', period: '974–1028', shortDescription: 'Vị vua sáng lập triều Lý, quê vùng Kinh Bắc.' }],
+    landmarks: [{ name: 'Chùa Dâu', shortDescription: 'Một trong những trung tâm Phật giáo cổ nhất Việt Nam.' }],
+    foods: [{ name: 'Bánh phu thê', shortDescription: 'Đặc sản Kinh Bắc, biểu tượng văn hóa cưới hỏi truyền thống.' }],
+    cultureNotes: ['Dân ca quan họ Bắc Ninh là di sản văn hóa phi vật thể đại diện của nhân loại.'],
+    suggestedLearningQuestions: ['Quan họ phản ánh nét đẹp giao duyên nào của văn hóa Kinh Bắc?'],
+    relatedPlaces: ['ha-noi', 'bac-giang', 'hung-yen'],
+  },
+]
+
+const legacyMergedPlaceSlugs = new Set([
+  'bac-giang',
+  'quang-binh',
+  'quang-tri',
+  'binh-dinh',
+  'phu-yen',
+  'ninh-thuan',
+  'binh-thuan',
+  'kon-tum',
+  'binh-phuoc',
+  'long-an',
+  'kien-giang',
+  'ben-tre',
+  'soc-trang',
+  'bac-lieu',
+  'tra-vinh',
+  'hau-giang',
+])
+
+const mainlandAdministrativePlaces: VietnamPlace[] = [
   ...northPlaces,
   ...centralPlaces,
   ...highlandsPlaces,
   ...southPlaces,
-  ...islandPlaces,
+  ...supplemental2025Places,
+].filter((place) => !legacyMergedPlaceSlugs.has(place.slug))
+
+const nationalSeaIslandPlaces = islandPlaces.filter((place) =>
+  ['hoang-sa', 'truong-sa'].includes(place.slug)
+)
+
+// ─── Combine All Data ────────────────────────────────────────────────────────
+// Public atlas list follows the 2025 34-unit structure plus the two sovereign
+// archipelago education entries. Absorbed legacy places stay in this file only
+// as source material and are intentionally not exported to the /vietnam atlas.
+
+export const vietnamAtlas: VietnamPlace[] = [
+  ...mainlandAdministrativePlaces,
+  ...nationalSeaIslandPlaces,
 ]

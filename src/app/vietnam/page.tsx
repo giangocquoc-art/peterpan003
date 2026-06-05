@@ -24,6 +24,7 @@ import {
   MapPin,
 } from 'lucide-react'
 import {
+  VIETNAM_ADMINISTRATIVE_COUNTS,
   vietnamAtlas,
   getPlaceBySlug,
   type RegionType,
@@ -124,11 +125,8 @@ export default function VietnamPage() {
 
   // ── Overview: Map + Cards ──────────────────────────────────────────────────
 
-  const totalCities = vietnamAtlas.filter((p) => p.type === 'city').length
-  const totalProvinces = vietnamAtlas.filter((p) => p.type === 'province').length
-  const totalArchipelagos = vietnamAtlas.filter(
-    (p) => p.type === 'archipelago'
-  ).length
+  const totalCities = VIETNAM_ADMINISTRATIVE_COUNTS.cities
+  const totalProvinces = VIETNAM_ADMINISTRATIVE_COUNTS.provinces
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
@@ -162,7 +160,7 @@ export default function VietnamPage() {
               <span className="text-slate-200">·</span>
               <span>{totalProvinces} tỉnh</span>
               <span className="text-slate-200">·</span>
-              <span>{totalArchipelagos} quần đảo</span>
+              <span>Biển đảo Việt Nam</span>
             </div>
 
             {/* Search toggle */}
@@ -217,7 +215,7 @@ export default function VietnamPage() {
                 const isActive = regionFilter === filter.id
                 const count =
                   filter.id === 'all'
-                    ? vietnamAtlas.length
+                    ? VIETNAM_ADMINISTRATIVE_COUNTS.provincialUnits
                     : vietnamAtlas.filter((p) => p.region === filter.id).length
                 return (
                   <button
@@ -262,7 +260,9 @@ export default function VietnamPage() {
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-slate-300" />
             <h2 className="text-sm font-medium text-slate-500">
-              {filteredPlaces.length} địa điểm
+              {regionFilter === 'all' && !searchQuery
+                ? `${VIETNAM_ADMINISTRATIVE_COUNTS.provincialUnits} tỉnh/thành · Biển đảo Việt Nam`
+                : `${filteredPlaces.length} địa điểm`}
               {regionFilter !== 'all' && (
                 <span className="ml-1 text-slate-300">
                   ·{' '}
