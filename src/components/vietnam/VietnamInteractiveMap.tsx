@@ -45,8 +45,13 @@ const VIETNAM_CENTER: [number, number] = [14.0583, 108.2772]
 
 /** Extended bounds to include Hoàng Sa and Trường Sa */
 const VIETNAM_BOUNDS: L.LatLngBoundsExpression = [
-  [5.5, 101],
-  [24.0, 118],
+  [5.0, 101.0],
+  [24.5, 118.5],
+]
+
+const VIETNAM_MAX_BOUNDS: L.LatLngBoundsExpression = [
+  [3.5, 99.5],
+  [25.5, 120.0],
 ]
 
 /** Region colors — bright and easy to see on light basemap */
@@ -90,23 +95,23 @@ interface SovereigntyLabel {
 const SOVEREIGNTY_LABELS: SovereigntyLabel[] = [
   // ── Hoàng Sa ──
   {
-    position: [16.5, 112.0],
-    text: '🇻🇳 Quần đảo Hoàng Sa',
+    position: [16.9, 112.55],
+    text: 'Hoàng Sa',
     style: 'primary',
     isClickable: true,
     slug: 'hoang-sa',
   },
   // ── Trường Sa ──
   {
-    position: [9.5, 114.0],
-    text: '🇻🇳 Quần đảo Trường Sa',
+    position: [9.45, 114.55],
+    text: 'Trường Sa',
     style: 'primary',
     isClickable: true,
     slug: 'truong-sa',
   },
   // ── Biển Đông ──
   {
-    position: [12.5, 113.5],
+    position: [12.7, 112.35],
     text: 'BIỂN ĐÔNG',
     style: 'sea',
   },
@@ -116,13 +121,6 @@ const SOVEREIGNTY_LABELS: SovereigntyLabel[] = [
     text: 'VIỆT NAM',
     style: 'secondary',
   },
-]
-
-// ─── Vietnamese Flag Markers ─────────────────────────────────────────────────
-
-const FLAG_MARKERS: Array<{ position: [number, number]; label: string }> = [
-  { position: [16.5, 112.0], label: 'Hoàng Sa' },
-  { position: [9.5, 114.0], label: 'Trường Sa' },
 ]
 
 // ─── Props Interface ─────────────────────────────────────────────────────────
@@ -199,12 +197,12 @@ function createPlaceIcon(place: VietnamPlace, isSelected: boolean, isHovered: bo
         width: ${size}px;
         height: ${size}px;
         border-radius: 50%;
-        background: ${isArchipelago ? `${regionColor}20` : 'white'};
-        border: 2.5px solid ${regionColor};
+        background: ${isArchipelago ? 'white' : 'white'};
+        border: ${isArchipelago ? '3px' : '2.5px'} solid ${regionColor};
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: ${isSelected ? 20 : isHovered ? 18 : 14}px;
+        font-size: ${isArchipelago ? (isSelected ? 18 : isHovered ? 17 : 15) : (isSelected ? 20 : isHovered ? 18 : 14)}px;
         line-height: 1;
         box-shadow: 0 2px ${isSelected ? 12 : 6}px ${regionColor}33;
         cursor: pointer;
@@ -530,11 +528,16 @@ export default function VietnamInteractiveMap({
   return (
     <div
       className="relative w-full overflow-hidden rounded-2xl border border-slate-200 shadow-lg"
-      style={{ height: 'min(70vh, 600px)', minHeight: '350px' }}
+      style={{ height: 'min(70vh, 600px)', minHeight: '350px', touchAction: 'pan-y pinch-zoom' }}
     >
       <MapContainer
         center={VIETNAM_CENTER}
         zoom={DEFAULT_ZOOM}
+        minZoom={5}
+        maxZoom={11}
+        maxBounds={VIETNAM_MAX_BOUNDS}
+        maxBoundsViscosity={1}
+        worldCopyJump={false}
         className="h-full w-full"
         zoomControl={true}
         attributionControl={false}
@@ -567,20 +570,20 @@ export default function VietnamInteractiveMap({
                 html: `<div style="
                   background: ${
                     isPrimary
-                      ? 'rgba(220, 38, 38, 0.9)'
+                      ? 'rgba(255, 255, 255, 0.92)'
                       : isSea
-                      ? 'rgba(59, 130, 246, 0.75)'
-                      : 'rgba(100, 116, 139, 0.6)'
+                      ? 'rgba(255, 255, 255, 0.78)'
+                      : 'rgba(255, 255, 255, 0.78)'
                   };
-                  color: #ffffff;
-                  font-size: ${isPrimary ? '14px' : isSea ? '16px' : '13px'};
+                  color: ${isPrimary ? '#b91c1c' : isSea ? '#1d4ed8' : '#475569'};
+                  font-size: ${isPrimary ? '12px' : isSea ? '15px' : '12px'};
                   font-weight: ${isPrimary ? '700' : isSea ? '800' : '600'};
-                  padding: ${isPrimary ? '5px 12px' : isSea ? '4px 16px' : '3px 10px'};
-                  border-radius: 6px;
+                  padding: ${isPrimary ? '3px 8px' : isSea ? '3px 14px' : '3px 9px'};
+                  border-radius: 999px;
                   white-space: nowrap;
                   text-align: center;
-                  border: ${isPrimary ? '2px solid #dc2626' : isSea ? '1.5px solid rgba(59, 130, 246, 0.5)' : '1px solid rgba(255,255,255,0.3)'};
-                  box-shadow: ${isPrimary ? '0 2px 12px rgba(220, 38, 38, 0.4)' : isSea ? '0 2px 10px rgba(59, 130, 246, 0.3)' : '0 1px 6px rgba(0,0,0,0.15)'};
+                  border: ${isPrimary ? '1px solid rgba(220, 38, 38, 0.28)' : isSea ? '1px solid rgba(59, 130, 246, 0.24)' : '1px solid rgba(100,116,139,0.22)'};
+                  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
                   font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
                   letter-spacing: ${isSea ? '0.12em' : '0.02em'};
                   line-height: 1.4;
@@ -602,35 +605,6 @@ export default function VietnamInteractiveMap({
             />
           )
         })}
-
-        {/* ── Vietnamese Flag Markers at Hoàng Sa & Trường Sa ── */}
-        {FLAG_MARKERS.map((flag, i) => (
-          <Marker
-            key={`flag-${i}`}
-            position={flag.position}
-            icon={L.divIcon({
-              html: `<div style="
-                width: 44px;
-                height: 44px;
-                border-radius: 50%;
-                background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-                border: 3px solid #dc2626;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 24px;
-                line-height: 1;
-                box-shadow: 0 0 12px rgba(220, 38, 38, 0.5), 0 0 24px rgba(220, 38, 38, 0.2);
-                animation: vietnamFlagPulse 3s ease-in-out infinite;
-              ">🇻🇳</div>`,
-              className: 'vietnam-flag-marker',
-              iconSize: [44, 44],
-              iconAnchor: [22, 22],
-            })}
-            interactive={false}
-            keyboard={false}
-          />
-        ))}
 
         {/* Programmatic map controls */}
         <MapController selectedSlug={selectedSlug} />

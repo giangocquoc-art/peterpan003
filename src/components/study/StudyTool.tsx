@@ -80,7 +80,7 @@ export default function StudyTool({ onBack }: { onBack: () => void }) {
     try {
       let extractedText = ''
 
-      if (file.type === 'application/pdf') {
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
         setProcessProgress('Đang đọc PDF...')
         extractedText = await extractTextFromPDF(file)
       } else if (
@@ -97,7 +97,7 @@ export default function StudyTool({ onBack }: { onBack: () => void }) {
       }
 
       if (extractedText.trim().length < 20) {
-        setError('Nội dung file quá ngắn hoặc không thể đọc. Vui lòng thử file khác hoặc dán text trực tiếp.')
+        setError(`Chỉ trích xuất được ${extractedText.trim().split(/\s+/).filter(Boolean).length} từ. File có thể là PDF scan/ảnh hoặc nội dung quá ngắn. Vui lòng dùng PDF có lớp chữ, TXT/MD hoặc dán text trực tiếp.`)
         setIsProcessing(false)
         return
       }
@@ -106,8 +106,8 @@ export default function StudyTool({ onBack }: { onBack: () => void }) {
       setInputMethod('file')
       setIsProcessing(false)
       setProcessProgress('')
-    } catch {
-      setError('Không thể đọc file. Vui lòng thử lại hoặc dán text trực tiếp.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể đọc file. Vui lòng thử lại hoặc dán text trực tiếp.')
       setIsProcessing(false)
       setProcessProgress('')
     }

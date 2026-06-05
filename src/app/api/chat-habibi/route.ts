@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { db } from '@/lib/db'
 
 const MODE_PROMPTS: Record<string, string> = {
   chat: `Bạn là Habibi — trợ lý AI thân thiện, thông minh của P-ShareHub. Bạn trả lời bằng tiếng Việt, giải thích dễ hiểu, ngắn gọn nhưng đầy đủ. Bạn luôn lịch sự, nhiệt tình và sẵn sàng giúp đỡ. Nếu người dùng hỏi về lập trình, bạn viết code rõ ràng có chú thích. Nếu hỏi kiến thức chung, bạn trả lời chính xác, có cấu trúc. Bạn có thể sử dụng emoji nhẹ nhàng để tạo sự thân thiện.`,
@@ -22,17 +23,24 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    const systemPrompt = MODE_PROMPTS[mode] || MODE_PROMPTS.chat
+    const config = await (db as any).aiConfig.findUnique({ where: { id: 'default' } }).catch(() => null)
+    const languageInstruction = config?.language === 'vi'
+      ? 'Luôn trả lời bằng tiếng Việt.'
+      : `Ưu tiên trả lời theo ngôn ngữ cấu hình: ${config?.language || 'vi'}.`
+    const systemPrompt = `${MODE_PROMPTS[mode] || MODE_PROMPTS.chat}\n\n${languageInstruction}`
 
     const ZAI = (await import('z-ai-web-dev-sdk')).default
+    if (config?.apiKey && !process.env.ZAI_API_KEY) process.env.ZAI_API_KEY = config.apiKey
     const zai = await ZAI.create()
 
-    const messages: Array<{ role: string; content: string }> = [
-      { role: 'assistant', content: systemPrompt },
-      ...history.map((m: { role: string; content: string }) => ({
-        role: m.role,
-        content: m.content,
-      })),
+    const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
+      { role: 'system', content: systemPrompt },
+      ...history
+        .filter((m: { role: string; content: string }) => m.role === 'user' || m.role === 'assistant')
+        .map((m: { role: 'user' | 'assistant'; content: string }) => ({
+          role: m.role,
+          content: m.content,
+        })),
       { role: 'user', content: message },
     ]
 
@@ -41,6 +49,7 @@ export async function POST(req: NextRequest) {
       const stream = await zai.chat.completions.create({
         messages,
         stream: true,
+        ...(config?.model ? { model: config.model } : {}),
       })
 
       const encoder = new TextEncoder()
@@ -171,6 +180,7 @@ export async function POST(req: NextRequest) {
     const completion = await zai.chat.completions.create({
       messages,
       thinking: { type: 'disabled' },
+      ...(config?.model ? { model: config.model } : {}),
     })
 
     const content = completion.choices?.[0]?.message?.content || 'Xin lỗi, tôi không thể trả lời lúc này.'

@@ -30,14 +30,10 @@ import {
   X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import dynamic from 'next/dynamic'
-
-// Lazy load heavy components
-const ChatHabibi = dynamic(() => import('@/components/chat/ChatHabibi'), { ssr: false })
-
-const StudyTool = dynamic(() => import('@/components/study/StudyTool'), { ssr: false })
-
-type View = 'home' | 'study' | 'chat'
+const CLEAN_ROUTES = {
+  study: '/study',
+  chat: '/habibi',
+} as const
 
 /* ─── Canvas Galaxy Background ─── */
 function GalaxyBackground() {
@@ -440,25 +436,16 @@ function Footer() {
 
 /* ─── Main Page ─── */
 export default function Home() {
-  // Initialize view from URL hash synchronously
-  const getInitialView = (): View => {
-    if (typeof window === 'undefined') return 'home'
-    const hash = window.location.hash.replace('#', '')
-    if (hash === 'hoctap') return 'study'
-    if (hash === 'chat') return 'chat'
-    return 'home'
-  }
-  const [view, setView] = useState<View>(getInitialView)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  // Update hash when view changes
-  const navigateTo = useCallback((newView: View) => {
-    setView(newView)
-    if (newView === 'home') {
-      window.history.replaceState(null, '', window.location.pathname)
-    } else {
-      window.history.replaceState(null, '', `${window.location.pathname}#${newView}`)
-    }
+  useEffect(() => {
+    const hash = window.location.hash.replace('#', '').toLowerCase()
+    if (hash === 'chat') window.location.replace(CLEAN_ROUTES.chat)
+    if (hash === 'study' || hash === 'hoctap') window.location.replace(CLEAN_ROUTES.study)
+  }, [])
+
+  const navigateTo = useCallback((route: (typeof CLEAN_ROUTES)[keyof typeof CLEAN_ROUTES]) => {
+    window.location.href = route
   }, [])
 
   const scrollToPEnglish = useCallback(() => {
@@ -474,10 +461,6 @@ export default function Home() {
   const goToVietnam = useCallback(() => {
     window.location.href = '/vietnam'
   }, [])
-
-  // If not home, render the selected view
-  if (view === 'chat') return <ChatHabibi onBack={() => navigateTo('home')} />
-  if (view === 'study') return <StudyTool onBack={() => navigateTo('home')} />
 
   // Home view
   return (
@@ -517,11 +500,11 @@ export default function Home() {
             <button onClick={goToVietnam} className="text-sm text-muted-foreground transition-colors hover:text-foreground">
               Việt Nam 🇻🇳
             </button>
-            <button onClick={() => navigateTo('study')} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <button onClick={() => navigateTo(CLEAN_ROUTES.study)} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
               <GraduationCap className="h-3.5 w-3.5" />
               Học tập
             </button>
-            <button onClick={() => navigateTo('chat')} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <button onClick={() => navigateTo(CLEAN_ROUTES.chat)} className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
               <MessageCircle className="h-3.5 w-3.5" />
               Chat AI
             </button>
@@ -550,10 +533,10 @@ export default function Home() {
               <button onClick={() => { goToVietnam(); setMobileMenuOpen(false) }} className="text-lg text-white/70">
                 Việt Nam 🇻🇳
               </button>
-              <button onClick={() => { navigateTo('study'); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
+              <button onClick={() => { navigateTo(CLEAN_ROUTES.study); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
                 <GraduationCap className="h-5 w-5" /> Học tập 📚
               </button>
-              <button onClick={() => { navigateTo('chat'); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
+              <button onClick={() => { navigateTo(CLEAN_ROUTES.chat); setMobileMenuOpen(false) }} className="flex items-center gap-2 text-lg text-white/70">
                 <MessageCircle className="h-5 w-5" /> Chat AI
               </button>
               <a href="#contact" onClick={() => setMobileMenuOpen(false)} className="text-lg text-white/70">
@@ -586,13 +569,13 @@ export default function Home() {
               Việt Nam 🇻🇳
             </button>
             <button
-              onClick={() => navigateTo('study')}
+              onClick={() => navigateTo(CLEAN_ROUTES.study)}
               className="liquid-glass cursor-pointer rounded-full px-6 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
             >
               Học tập 📚
             </button>
             <button
-              onClick={() => navigateTo('chat')}
+              onClick={() => navigateTo(CLEAN_ROUTES.chat)}
               className="liquid-glass cursor-pointer rounded-full px-6 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
             >
               Chat Habibi ✨
@@ -622,13 +605,13 @@ export default function Home() {
               title="Học tập 📚"
               description="Biến PDF, tài liệu thành bài học — không AI, chạy 100% trên trình duyệt, không lưu dữ liệu."
               icon={BookOpen}
-              onClick={() => navigateTo('study')}
+              onClick={() => navigateTo(CLEAN_ROUTES.study)}
             />
             <ToolCard
               title="Chat Habibi"
               description="Trợ lý AI thông minh với 4 chế độ: Chat, Build Web, Học tập, Sáng tạo. Xem tiến độ tư duy AI."
               icon={MessageCircle}
-              onClick={() => navigateTo('chat')}
+              onClick={() => navigateTo(CLEAN_ROUTES.chat)}
             />
             <ToolCard
               title="P-English"
@@ -706,7 +689,7 @@ export default function Home() {
               </div>
               <div className="pt-2">
                 <button
-                  onClick={() => navigateTo('study')}
+                  onClick={() => navigateTo(CLEAN_ROUTES.study)}
                   className="liquid-glass inline-flex cursor-pointer items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
                 >
                   Tạo bài học <ArrowRight className="ml-2 h-4 w-4" />
@@ -750,7 +733,7 @@ export default function Home() {
               </div>
               <div className="pt-2">
                 <button
-                  onClick={() => navigateTo('chat')}
+                  onClick={() => navigateTo(CLEAN_ROUTES.chat)}
                   className="liquid-glass inline-flex cursor-pointer items-center rounded-full px-8 py-3 text-sm text-foreground transition-transform hover:scale-[1.03]"
                 >
                   Chat với Habibi <ArrowRight className="ml-2 h-4 w-4" />

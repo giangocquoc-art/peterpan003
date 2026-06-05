@@ -560,23 +560,39 @@ export function generateStudy(
 export async function extractTextFromPDF(file: File): Promise<string> {
   const pdfjsLib = await import('pdfjs-dist')
 
-  // Set worker source
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`
+  if (typeof window !== 'undefined') {
+    const workerUrl = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url)
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl.toString()
+  }
 
   const arrayBuffer = await file.arrayBuffer()
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+  const loadingTask = pdfjsLib.getDocument({
+    data: new Uint8Array(arrayBuffer),
+    useWorkerFetch: false,
+    disableFontFace: true,
+  })
+  const pdf = await loadingTask.promise
 
   const textParts: string[] = []
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i)
-    const textContent = await page.getTextContent()
+    const textContent = await page.getTextContent({ includeMarkedContent: false })
     const pageText = textContent.items
-      .map((item: any) => item.str)
+      .map((item: any) => ('str' in item ? item.str : ''))
+      .filter(Boolean)
       .join(' ')
-    textParts.push(pageText)
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    if (pageText) textParts.push(pageText)
   }
 
-  return textParts.join('\n\n')
+  const extracted = textParts.join('\n\n').trim()
+  if (!extracted) {
+    throw new Error('PDF này có thể là bản scan/ảnh nên không có lớp chữ để trích xuất. Vui lòng dùng PDF có text hoặc dán nội dung trực tiếp.')
+  }
+
+  return extracted
 }
 
 // ─── TXT/Text File Extraction ───
